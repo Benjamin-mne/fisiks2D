@@ -1,10 +1,7 @@
-import { Fisiks2DVector } from "./Fisiks2DVector";
+import { FisiksDisplay } from "./FisiksDisplay"; 
 
-const vectorA = new Fisiks2DVector(5, 3);
-const vectorB = new Fisiks2DVector(2, 1);
+const display = new FisiksDisplay(400, 400);
 
-const sum = Fisiks2DVector.Add(vectorA, vectorB);
-const diff = Fisiks2DVector.Difference(vectorA, vectorB);
-const scaMul = Fisiks2DVector.ScalarMultiplication(5, vectorA);
+document.body.appendChild(display.getCanvas());
 
-console.log(sum, diff, scaMul);
+display.startGameLoop();
