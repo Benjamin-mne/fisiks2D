@@ -1,5 +1,6 @@
 import { FisiksBody } from "./FisiksBody";
 import { FisiksBodyController } from "./FisiksBodyController";
+import { FisiksCollisions } from "./FisiksCollisions";
 
 export class FisiksDisplay {
     width: number;
@@ -50,7 +51,7 @@ export class FisiksDisplay {
 
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        FisiksBodyController(this.bodyList[0], secondsPassed);
+        FisiksBodyController(this.bodyList[0], secondsPassed, 300);
 
         for (let i = 0; i < this.bodyList.length; i++) {
             const body = this.bodyList[i];
@@ -58,7 +59,16 @@ export class FisiksDisplay {
             body.Update();
         }
 
-        requestAnimationFrame(this.GameLoop.bind(this));
+        for (let i = 0; i < this.bodyList.length - 1; i++) {
+            let bodyA: FisiksBody = this.bodyList[i];
 
+            for (let j = i + 1; j < this.bodyList.length; j++) {
+                let bodyB: FisiksBody = this.bodyList[j];
+                
+                FisiksCollisions.ResolveCollisions(bodyA, bodyB);
+            }            
+        }
+
+        requestAnimationFrame(this.GameLoop.bind(this));
     }
 }
