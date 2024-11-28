@@ -8,9 +8,9 @@ export class FisiksBody {
     position: Fisiks2DVector = Fisiks2DVector.Zero;
     color: string = 'blue';
 
-    private linearVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
-    private rotation: number = 0;
-    private rotationalVelocity: number = 0;
+    linearVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
+    rotation: number = 0;
+    rotationalVelocity: number = 0;
 
     public area: number = 0;
     public density: number = 0;
@@ -52,6 +52,11 @@ export class FisiksBody {
         this.mass = this.area;
 
         FisiksShape.DrawBox(this.context, this.position, this.color, this.width, this.height);
+    }
+
+    Move(amount: Fisiks2DVector)
+    {
+        this.position = Fisiks2DVector.Add(this.position, amount);
     }
 
     Draw(){
