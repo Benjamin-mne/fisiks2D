@@ -1,4 +1,5 @@
 import { FisiksBody } from "./FisiksBody";
+import { FisiksBodyController } from "./FisiksBodyController";
 
 export class FisiksDisplay {
     width: number;
@@ -49,11 +50,15 @@ export class FisiksDisplay {
 
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+        FisiksBodyController(this.bodyList[0], secondsPassed);
+
         for (let i = 0; i < this.bodyList.length; i++) {
             const body = this.bodyList[i];
             body.Draw();
+            body.Update();
         }
 
         requestAnimationFrame(this.GameLoop.bind(this));
+
     }
 }
