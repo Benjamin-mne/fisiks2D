@@ -29,19 +29,19 @@ export class FisiksDisplay {
     }
 
 
-    getCanvas(): HTMLCanvasElement {
+    GetCanvas(): HTMLCanvasElement {
         return this.canvas;
     }
 
-    getContext(): CanvasRenderingContext2D {
+    GetContext(): CanvasRenderingContext2D {
         return this.context;
     }
 
-    startGameLoop(): void {
+    StartGameLoop(): void {
         requestAnimationFrame(this.GameLoop.bind(this));
     }
 
-    addBody(body: FisiksBody): void {
+    AddBody(body: FisiksBody): void {
         this.bodyList.push(body)
     }
 

@@ -12,6 +12,8 @@ export class FisiksBody {
     rotation: number = 0;
     rotationalVelocity: number = 0;
 
+    vertices: Fisiks2DVector[] = [];
+
     public area: number = 0;
     public density: number = 0;
     public mass: number = 0;
@@ -50,8 +52,26 @@ export class FisiksBody {
         this.area = width * height;
         this.density = this.area;
         this.mass = this.area;
+        this.vertices = this.CreateBoxVertices(width, height);
 
         FisiksShape.DrawBox(this.context, this.position, this.color, this.width, this.height);
+        FisiksShape.DrawVertices(this.context, this.vertices, 'red');
+    }
+
+    CreateBoxVertices(width: number, height: number): Fisiks2DVector[]{
+        let vertices: Fisiks2DVector[] = [];
+        
+        let left: number = this.position.x;
+        let right: number = this.position.x + width - 5;
+        let bottom: number = this.position.y + height - 5;
+        let top: number = this.position.y;
+
+        vertices[0] = new Fisiks2DVector(left, top);
+        vertices[1] = new Fisiks2DVector(right, top);
+        vertices[2] = new Fisiks2DVector(left, bottom);
+        vertices[3] = new Fisiks2DVector(right, bottom);
+
+        return vertices;
     }
 
     Move(amount: Fisiks2DVector)

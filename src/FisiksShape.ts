@@ -16,4 +16,13 @@ export class FisiksShape {
         context.fillStyle = color;
         context.fill();
     }
+
+    public static DrawVertices(context: CanvasRenderingContext2D, vertices: Fisiks2DVector[], color: string){
+        for (const vertex of vertices) {
+            context.beginPath();
+            context.rect(vertex.x, vertex.y, 5, 5);
+            context.fillStyle = color;
+            context.fill();
+        }
+    }
 }

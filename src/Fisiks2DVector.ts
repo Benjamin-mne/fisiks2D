@@ -1,3 +1,5 @@
+import { FisiksTransform } from "./FisiksTransform";
+
 export class Fisiks2DVector {
     public readonly x: number;
     public readonly y: number;
@@ -32,6 +34,16 @@ export class Fisiks2DVector {
 
         return Math.sqrt(dx * dx + dy * dy);
     }
+
+    public static Transform(vector: Fisiks2DVector, transform: FisiksTransform): Fisiks2DVector {
+        let rotationX: number = transform.cos * vector.x - transform.sin * vector.y;
+        let rotationY: number = transform.sin * vector.x - transform.cos * vector.y;
+
+        let translationX = rotationX + transform.positionX;
+        let translationY = rotationY + transform.positionY;
+
+        return new Fisiks2DVector(translationX, translationY)
+    } 
 
     public static DotProduct(vector: Fisiks2DVector, otherVector: Fisiks2DVector): number {
         return vector.x * otherVector.x + vector.y * otherVector.y;

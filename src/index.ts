@@ -3,13 +3,13 @@ import { getFisiksBodyList } from "./helpers/mocks";
 
 const display = new FisiksDisplay(500, 500);
 
-document.body.appendChild(display.getCanvas());
-const ctx = display.getContext();
+document.body.appendChild(display.GetCanvas());
+const ctx = display.GetContext();
 
 const mockFisiksBody = getFisiksBodyList(ctx, 10);
 
 for (const body of mockFisiksBody) {
-    display.addBody(body)
+    display.AddBody(body)
 }
 
-display.startGameLoop();
+display.StartGameLoop();
