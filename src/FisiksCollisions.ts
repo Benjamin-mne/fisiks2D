@@ -1,6 +1,5 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksBody, ShapeType } from "./FisiksBody";
-import { FisiksShape } from "./FisiksShape";
 
 export class FisiksCollisions {
     public static ResolveCollisions(BodyA: FisiksBody, BodyB: FisiksBody){
@@ -9,20 +8,16 @@ export class FisiksCollisions {
         }
 
         if(BodyA.shape === ShapeType.Box && BodyB.shape === ShapeType.Box){
-            if(this.IntersectPolygons(BodyA, BodyB)){
-                if((BodyA.context === null || BodyB.context === null)){
-                    return
-                } else {
-                    FisiksShape.DrawVertices(BodyA.context, BodyA.transformedVertices, 'red');
-                    FisiksShape.DrawVertices(BodyB.context, BodyB.transformedVertices, 'red');
-                }
-            }
+            this.IntersectPolygons(BodyA, BodyB);
         }
     }
 
-    static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): boolean{
+    static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): void{
         const verticesA: Fisiks2DVector[] = PolygonA.vertices;
         const verticesB: Fisiks2DVector[] = PolygonB.vertices;
+
+        let normal: Fisiks2DVector = Fisiks2DVector.Zero;
+        let depth: number = Number.MAX_VALUE; 
 
         for (let i = 0; i < verticesA.length; i++) {
             const VertexA: Fisiks2DVector = verticesA[i];
@@ -36,7 +31,14 @@ export class FisiksCollisions {
             const epsilon = 1e-6;
 
             if (minA > maxB + epsilon || minB > maxA + epsilon) {
-                return false;
+                return;
+            }
+
+            const axisDepth: number = Math.min(maxB - minA, maxA - minB); 
+            
+            if(axisDepth < depth){
+                depth = axisDepth;
+                normal = axis;
             }
         }
 
@@ -52,12 +54,31 @@ export class FisiksCollisions {
             const epsilon = 1e-6; 
             
             if (minA > maxB + epsilon || minB > maxA + epsilon) {
-                return false;
+                return;
             }
+
+            const axisDepth: number = Math.min(maxB - minA, maxA - minB); 
             
+            if(axisDepth < depth){
+                depth = axisDepth;
+                normal = axis;
+            }
         }
 
-        return true;
+        depth = depth / normal.GetMagnitude();
+        normal = Fisiks2DVector.Normalize(normal);
+
+        let direction: Fisiks2DVector = Fisiks2DVector.Difference(PolygonB.rotationCenter, PolygonA.rotationCenter); 
+        
+        if(Fisiks2DVector.DotProduct(direction, normal) < 0){
+            normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
+        }
+
+        let collisionResolutionVectorA = Fisiks2DVector.ScalarMultiplication(depth / -2, normal);
+        let collisionResolutionVectorB = Fisiks2DVector.ScalarMultiplication(depth / 2, normal);
+
+        PolygonA.Move(collisionResolutionVectorA);
+        PolygonB.Move(collisionResolutionVectorB);
     }
 
     static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number, max: number } {
