@@ -36,6 +36,7 @@ export class Fisiks2DVector {
     }
 
     public static Transform(vector: Fisiks2DVector, transform: FisiksTransform): Fisiks2DVector {
+<<<<<<< HEAD
         const relativeVector = new Fisiks2DVector(
             vector.x - transform.positionX,
             vector.y - transform.positionY
@@ -47,6 +48,15 @@ export class Fisiks2DVector {
         )
 
         return new Fisiks2DVector(rotationVector.x + transform.positionX, rotationVector.y + transform.positionY);
+=======
+        let rotationX: number = transform.cos * vector.x - transform.sin * vector.y;
+        let rotationY: number = transform.sin * vector.x - transform.cos * vector.y;
+
+        let translationX = rotationX + transform.positionX;
+        let translationY = rotationY + transform.positionY;
+
+        return new Fisiks2DVector(translationX, translationY)
+>>>>>>> e7313d02ae604463c0b2cfad7b36baf90b96d986
     } 
 
     public static DotProduct(vector: Fisiks2DVector, otherVector: Fisiks2DVector): number {
