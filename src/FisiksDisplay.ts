@@ -1,6 +1,7 @@
 import { FisiksBody } from "./FisiksBody";
 import { FisiksBodyController } from "./FisiksBodyController";
 import { FisiksCollisions } from "./FisiksCollisions";
+import { ShapeType } from "./FisiksShape";
 
 export class FisiksDisplay {
     width: number;
@@ -53,8 +54,14 @@ export class FisiksDisplay {
 
         FisiksBodyController(this.bodyList[0], secondsPassed, 300);
 
+
         for (let i = 0; i < this.bodyList.length; i++) {
             const body = this.bodyList[i];
+
+            if(body.shape === ShapeType.Box){
+                body.Rotate(Math.PI / 4 * secondsPassed);
+            }
+            
             body.Draw();
             body.Update();
         }

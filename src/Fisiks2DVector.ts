@@ -36,13 +36,17 @@ export class Fisiks2DVector {
     }
 
     public static Transform(vector: Fisiks2DVector, transform: FisiksTransform): Fisiks2DVector {
-        let rotationX: number = transform.cos * vector.x - transform.sin * vector.y;
-        let rotationY: number = transform.sin * vector.x - transform.cos * vector.y;
+        const relativeVector = new Fisiks2DVector(
+            vector.x - transform.positionX,
+            vector.y - transform.positionY
+        );
 
-        let translationX = rotationX + transform.positionX;
-        let translationY = rotationY + transform.positionY;
+        const rotationVector = new Fisiks2DVector(
+            transform.cos * relativeVector.x - transform.sin * relativeVector.y,
+            transform.sin * relativeVector.x + transform.cos * relativeVector.y
+        )
 
-        return new Fisiks2DVector(translationX, translationY)
+        return new Fisiks2DVector(rotationVector.x + transform.positionX, rotationVector.y + transform.positionY);
     } 
 
     public static DotProduct(vector: Fisiks2DVector, otherVector: Fisiks2DVector): number {
