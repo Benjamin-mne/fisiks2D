@@ -20,9 +20,27 @@ export class FisiksShape {
     public static DrawVertices(context: CanvasRenderingContext2D, vertices: Fisiks2DVector[], color: string){
         for (const vertex of vertices) {
             context.beginPath();
-            context.rect(vertex.x, vertex.y, 5, 5);
+            context.arc(vertex.x, vertex.y, 3, 0, 2 * Math.PI);
             context.fillStyle = color;
-            context.fill();
+            context.fill();  
         }
+    }
+
+    public static DrawPolygon(context: CanvasRenderingContext2D, vertices: Fisiks2DVector[], color: string ): void {
+        
+        if (vertices.length < 3) {
+            throw new Error("A polygon needs at least three vertices.");
+        }
+    
+        context.beginPath();
+        context.moveTo(vertices[0].x, vertices[0].y);
+    
+        for (let i = 1; i < vertices.length; i++) {
+            context.lineTo(vertices[i].x, vertices[i].y);
+        }
+    
+        context.closePath();
+        context.fillStyle = color;
+        context.fill();
     }
 }
