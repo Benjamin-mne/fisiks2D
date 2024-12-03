@@ -20,7 +20,6 @@ export class FisiksShape {
     public static DrawVertices(context: CanvasRenderingContext2D, vertices: Fisiks2DVector[], color: string){
         for (const vertex of vertices) {
             context.beginPath();
-<<<<<<< HEAD
             context.arc(vertex.x, vertex.y, 3, 0, 2 * Math.PI);
             context.fillStyle = color;
             context.fill();  
@@ -44,11 +43,4 @@ export class FisiksShape {
         context.fillStyle = color;
         context.fill();
     }
-=======
-            context.rect(vertex.x, vertex.y, 5, 5);
-            context.fillStyle = color;
-            context.fill();
-        }
-    }
->>>>>>> e7313d02ae604463c0b2cfad7b36baf90b96d986
 }

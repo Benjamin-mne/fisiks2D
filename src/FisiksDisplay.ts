@@ -1,10 +1,7 @@
 import { FisiksBody } from "./FisiksBody";
 import { FisiksBodyController } from "./FisiksBodyController";
 import { FisiksCollisions } from "./FisiksCollisions";
-<<<<<<< HEAD
 import { ShapeType } from "./FisiksShape";
-=======
->>>>>>> e7313d02ae604463c0b2cfad7b36baf90b96d986
 
 export class FisiksDisplay {
     width: number;
@@ -57,7 +54,6 @@ export class FisiksDisplay {
 
         FisiksBodyController(this.bodyList[0], secondsPassed, 300);
 
-<<<<<<< HEAD
 
         for (let i = 0; i < this.bodyList.length; i++) {
             const body = this.bodyList[i];
@@ -66,10 +62,6 @@ export class FisiksDisplay {
                 body.Rotate(Math.PI / 4 * secondsPassed);
             }
             
-=======
-        for (let i = 0; i < this.bodyList.length; i++) {
-            const body = this.bodyList[i];
->>>>>>> e7313d02ae604463c0b2cfad7b36baf90b96d986
             body.Draw();
             body.Update();
         }
