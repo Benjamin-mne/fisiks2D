@@ -1,6 +1,6 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksBody, ShapeType } from "./FisiksBody";
-
+import { FisiksShape } from "./FisiksShape";
 
 export class FisiksCollisions {
     public static ResolveCollisions(BodyA: FisiksBody, BodyB: FisiksBody){
@@ -9,7 +9,14 @@ export class FisiksCollisions {
         }
 
         if(BodyA.shape === ShapeType.Box && BodyB.shape === ShapeType.Box){
-            this.IntersectPolygons(BodyA, BodyB);
+            if(this.IntersectPolygons(BodyA, BodyB)){
+                if((BodyA.context === null || BodyB.context === null)){
+                    return
+                } else {
+                    FisiksShape.DrawVertices(BodyA.context, BodyA.transformedVertices, 'red');
+                    FisiksShape.DrawVertices(BodyB.context, BodyB.transformedVertices, 'red');
+                }
+            }
         }
     }
 
@@ -21,12 +28,14 @@ export class FisiksCollisions {
             const VertexA: Fisiks2DVector = verticesA[i];
             const VertexB: Fisiks2DVector = verticesA[(i + 1) % verticesA.length];
             const edge: Fisiks2DVector = Fisiks2DVector.Difference(VertexB, VertexA);
-            const axis: Fisiks2DVector = new Fisiks2DVector(edge.y * -1, edge.x)
+            const axis: Fisiks2DVector = Fisiks2DVector.Normalize(new Fisiks2DVector(edge.y * -1, edge.x));
             
             const { min: minA, max: maxA } = this.ProjectVertices(verticesA, axis);
             const { min: minB, max: maxB } = this.ProjectVertices(verticesB, axis);
 
-            if (minA >= maxB || minB >= maxA){
+            const epsilon = 1e-6;
+
+            if (minA > maxB + epsilon || minB > maxA + epsilon) {
                 return false;
             }
         }
@@ -35,37 +44,33 @@ export class FisiksCollisions {
             const VertexA: Fisiks2DVector = verticesB[i];
             const VertexB: Fisiks2DVector = verticesB[(i + 1) % verticesB.length];
             const edge: Fisiks2DVector = Fisiks2DVector.Difference(VertexB, VertexA);
-            const axis: Fisiks2DVector = new Fisiks2DVector(edge.y * -1, edge.x)
+            const axis: Fisiks2DVector = Fisiks2DVector.Normalize(new Fisiks2DVector(edge.y * -1, edge.x));
             
             const { min: minA, max: maxA } = this.ProjectVertices(verticesA, axis);
             const { min: minB, max: maxB } = this.ProjectVertices(verticesB, axis);
 
-            if (minA >= maxB || minB >= maxA){
+            const epsilon = 1e-6; 
+            
+            if (minA > maxB + epsilon || minB > maxA + epsilon) {
                 return false;
             }
+            
         }
 
         return true;
     }
 
-    private static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number; max: number } {
-        let min: number = Number.MAX_VALUE;
-        let max: number = Number.MIN_VALUE;
-
-        for (let i = 0; i < vertices.length; i++) {
-            const vertex: Fisiks2DVector = vertices[i];
-            const projected: number = Fisiks2DVector.DotProduct(vertex, axis);
-            
-            if (projected < min){
-                min = projected;
-            }
-            
-            if (projected > max){
-                max = projected;
-            }
+    static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number, max: number } {
+        let min = Number.POSITIVE_INFINITY;
+        let max = Number.NEGATIVE_INFINITY;
+    
+        for (const vertex of vertices) {
+            const projection = Fisiks2DVector.DotProduct(vertex, axis);
+            min = Math.min(min, projection);
+            max = Math.max(max, projection);
         }
-
-        return { min, max }
+    
+        return { min, max };
     }
     
     static IntersectCircles(CircleA: FisiksBody, CircleB: FisiksBody): void {

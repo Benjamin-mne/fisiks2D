@@ -66,12 +66,6 @@ export class FisiksBody {
         }
 
         FisiksShape.DrawPolygon(this.context, this.vertices, this.color);
-
-        if(this.transformedVertices.length !== 0){
-            FisiksShape.DrawVertices(this.context, this.transformedVertices.concat([this.rotationCenter]), 'blue');
-        } else {
-            FisiksShape.DrawVertices(this.context, this.vertices, 'red');
-        }
     }
 
     CreateBoxVertices(width: number, height: number): Fisiks2DVector[]{
@@ -123,6 +117,13 @@ export class FisiksBody {
 
     Move(amount: Fisiks2DVector){
         this.position = Fisiks2DVector.Add(this.position, amount);
+        this.rotationCenter = Fisiks2DVector.Add(this.rotationCenter, amount);
+
+        if(this.shape === ShapeType.Box){
+            for (let i = 0; i < this.vertices.length; i++) {
+                this.vertices[i] = Fisiks2DVector.Add(this.vertices[i], amount);                
+            }
+        }
     }
 
     Draw(){

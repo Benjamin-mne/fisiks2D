@@ -52,7 +52,6 @@ export class FisiksDisplay {
 
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        FisiksBodyController(this.bodyList[0], secondsPassed, 300);
 
 
         for (let i = 0; i < this.bodyList.length; i++) {
@@ -61,10 +60,12 @@ export class FisiksDisplay {
             if(body.shape === ShapeType.Box){
                 body.Rotate(Math.PI / 4 * secondsPassed);
             }
-            
+
             body.Draw();
             body.Update();
         }
+
+        FisiksBodyController(this.bodyList[1], secondsPassed, 300);
 
         for (let i = 0; i < this.bodyList.length - 1; i++) {
             let bodyA: FisiksBody = this.bodyList[i];
