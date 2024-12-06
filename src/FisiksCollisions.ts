@@ -10,6 +10,14 @@ export class FisiksCollisions {
         if(BodyA.shape === ShapeType.Box && BodyB.shape === ShapeType.Box){
             this.IntersectPolygons(BodyA, BodyB);
         }
+
+        if(BodyA.shape === ShapeType.Circle && BodyB.shape === ShapeType.Box){
+            this.IntersectCirclePolygon(BodyA, BodyB);
+        } 
+
+        if(BodyA.shape === ShapeType.Box && BodyB.shape === ShapeType.Circle){
+            this.IntersectCirclePolygon(BodyB, BodyA);
+        } 
     }
 
     static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): void{
@@ -81,6 +89,84 @@ export class FisiksCollisions {
         PolygonB.Move(collisionResolutionVectorB);
     }
 
+    static IntersectCirclePolygon(Circle: FisiksBody, Polygon: FisiksBody): void{
+        const vertices: Fisiks2DVector[] = Polygon.vertices;
+
+        let normal: Fisiks2DVector = Fisiks2DVector.Zero;
+        let depth: number = Number.MAX_VALUE; 
+
+        let axis: Fisiks2DVector = Fisiks2DVector.Zero;
+        const epsilon = 1e-6;
+
+        for (let i = 0; i < vertices.length; i++) {
+            const VertexA: Fisiks2DVector = vertices[i];
+            const VertexB: Fisiks2DVector = vertices[(i + 1) % vertices.length];
+            const edge: Fisiks2DVector = Fisiks2DVector.Difference(VertexB, VertexA);
+
+            if (edge.GetMagnitude() < epsilon) continue;
+
+            axis = Fisiks2DVector.Normalize(new Fisiks2DVector(edge.y * -1, edge.x));
+            
+            const { min: minA, max: maxA } = this.ProjectVertices(vertices, axis);
+            const { min: minB, max: maxB } = this.ProjectCircle(Circle, axis);
+
+            if (minA > maxB + epsilon || minB > maxA + epsilon) {
+                return;
+            }
+
+            const axisDepth: number = Math.min(maxB - minA, maxA - minB); 
+            
+            if(axisDepth < depth){
+                depth = axisDepth;
+                normal = axis;
+            }
+        }
+
+        const closesPointIndex: number = this.FindClosesPointIndex(Circle, vertices);
+        if (closesPointIndex === -1) return;
+
+        const closesPoint: Fisiks2DVector = vertices[closesPointIndex];
+
+        axis = Fisiks2DVector.Normalize(Fisiks2DVector.Difference(closesPoint, Circle.position));
+
+        const { min: minA, max: maxA } = this.ProjectVertices(vertices, axis);
+        const { min: minB, max: maxB } = this.ProjectCircle(Circle, axis);
+
+        if (minA > maxB + epsilon || minB > maxA + epsilon) {
+            return;
+        }
+
+        const axisDepth: number = Math.min(maxB - minA, maxA - minB); 
+        
+        if(axisDepth < depth){
+            depth = axisDepth;
+            normal = axis;
+        }
+
+        const magnitude = normal.GetMagnitude();
+
+        if (magnitude < epsilon) return;
+
+        depth = depth / magnitude;
+        normal = Fisiks2DVector.Normalize(normal);
+
+        if (!Polygon.rotationCenter || !Circle.position) return;
+
+        let direction: Fisiks2DVector = Fisiks2DVector.Difference(Polygon.rotationCenter, Circle.position); 
+        
+        if (direction.GetMagnitude() < epsilon) return;
+
+        if(Fisiks2DVector.DotProduct(direction, normal) < 0){
+            normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
+        }
+        
+        let collisionResolutionVectorA = Fisiks2DVector.ScalarMultiplication(depth / -2, normal);
+        let collisionResolutionVectorB = Fisiks2DVector.ScalarMultiplication(depth / 2, normal);
+
+        Circle.Move(collisionResolutionVectorA);
+        Polygon.Move(collisionResolutionVectorB);
+    } 
+
     static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number, max: number } {
         let min = Number.POSITIVE_INFINITY;
         let max = Number.NEGATIVE_INFINITY;
@@ -92,6 +178,36 @@ export class FisiksCollisions {
         }
     
         return { min, max };
+    }
+
+    static ProjectCircle(circle: FisiksBody, axis: Fisiks2DVector): { min: number, max: number } {
+        let direction: Fisiks2DVector = Fisiks2DVector.Normalize(axis);
+        let directionRadius: Fisiks2DVector = Fisiks2DVector.ScalarMultiplication(circle.radius, direction);
+
+        let point1: Fisiks2DVector = Fisiks2DVector.Add(circle.position, directionRadius);
+        let point2: Fisiks2DVector = Fisiks2DVector.Difference(circle.position, directionRadius);
+
+        const min: number = Math.min(Fisiks2DVector.DotProduct(point1, axis), Fisiks2DVector.DotProduct(point2, axis));
+        const max: number = Math.max(Fisiks2DVector.DotProduct(point1, axis), Fisiks2DVector.DotProduct(point2, axis));
+
+        return { min, max };
+    }
+
+    static FindClosesPointIndex(Circle: FisiksBody, vertices: Fisiks2DVector[]): number {
+        let result: number = -1; 
+        let minDistance: number = Number.MAX_VALUE;
+    
+        for (let i = 0; i < vertices.length; i++) {
+            const vertex: Fisiks2DVector = vertices[i];
+            const distance: number = Fisiks2DVector.Distance(vertex, Circle.position);
+
+            if(distance < minDistance){
+                minDistance = distance;
+                result = i;
+            }
+        }
+
+        return result;
     }
     
     static IntersectCircles(CircleA: FisiksBody, CircleB: FisiksBody): void {
