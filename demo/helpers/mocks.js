@@ -17,8 +17,8 @@ function generateRandomCircle(ctx) {
     return new FisiksBody({
         context: ctx,
         position: new Fisiks2DVector(
-            getRandomInRange(50, 450), // random position x
-            getRandomInRange(50, 500)  // random position y
+            getRandomInRange(100, 700), // random position x
+            getRandomInRange(100, 400)  // random position y
         ),
         color: getRandomColor(),
         shape: ShapeType.Circle,
@@ -30,13 +30,13 @@ function generateRandomBox(ctx) {
     return new FisiksBody({
         context: ctx,
         position: new Fisiks2DVector(
-            getRandomInRange(50, 450), //  random position x
-            getRandomInRange(50, 450)  // random position y
+            getRandomInRange(100, 450), //  random position x
+            getRandomInRange(100, 450)  // random position y
         ),
         color: getRandomColor(),
         shape: ShapeType.Box,
-        width: getRandomInRange(20, 100), // random witdh
-        height: getRandomInRange(20, 100), // random heigh
+        width: getRandomInRange(20, 80), // random witdh
+        height: getRandomInRange(20, 80), // random heigh
     });
 }
 
@@ -46,9 +46,15 @@ export function getFisiksBodyList(ctx, quantity) {
 
     for (let i = 0; i < quantity; i++) {
         if (i % 2 === 0) {
-            bodies.push(generateRandomCircle(ctx));
+            const body = generateRandomCircle(ctx);
+            if(i === 0){
+                body.controllable = true;
+            }
+
+            bodies.push(body);
         } else {
-            bodies.push(generateRandomBox(ctx));
+            // bodies.push(generateRandomBox(ctx));
+            bodies.push(generateRandomCircle(ctx));
         }
     }
 

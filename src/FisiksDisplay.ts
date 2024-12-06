@@ -1,7 +1,7 @@
+import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksBody } from "./FisiksBody";
 import { FisiksBodyController } from "./FisiksBodyController";
 import { FisiksCollisions } from "./FisiksCollisions";
-import { ShapeType } from "./FisiksShape";
 
 export class FisiksDisplay {
     width: number;
@@ -10,6 +10,14 @@ export class FisiksDisplay {
     context: CanvasRenderingContext2D;
     oldTimeStamp: number = 0;
     bodyList: FisiksBody[];
+
+    gravity: Fisiks2DVector = new Fisiks2DVector(0, 9.8); 
+
+    private externalBehaviors: ((body: FisiksBody) => void)[] = [];
+
+    RegisterBehavior(behavior: (body: FisiksBody) => void): void {
+        this.externalBehaviors.push(behavior);
+    }
 
     constructor(width: number, height: number) {
         this.width = width;
@@ -29,7 +37,6 @@ export class FisiksDisplay {
         this.bodyList = [];
     }
 
-
     GetCanvas(): HTMLCanvasElement {
         return this.canvas;
     }
@@ -46,26 +53,37 @@ export class FisiksDisplay {
         this.bodyList.push(body)
     }
 
+    RemoveBody(index: number): void {
+        this.bodyList = this.bodyList.filter((_, idx) => idx === index);
+    }
+
+    ForEachBody(method: (body: FisiksBody) => void = () => {}): void {
+        for (const body of this.bodyList) {
+            method(body);
+    
+            for (const behavior of this.externalBehaviors) {
+                behavior(body);
+            }
+        }
+    }
+
     private GameLoop(timeStamp: number): void {
         const secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
         this.oldTimeStamp = timeStamp;
 
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-
+        this.ForEachBody();
 
         for (let i = 0; i < this.bodyList.length; i++) {
             const body = this.bodyList[i];
-
-            if(body.shape === ShapeType.Box){
-                body.Rotate(Math.PI / 4 * secondsPassed);
+            if(body.controllable){
+                FisiksBodyController(this.bodyList[1], secondsPassed, 300);
             }
 
+            body.Steap(secondsPassed);
             body.Draw();
-            body.Update();
         }
-
-        FisiksBodyController(this.bodyList[1], secondsPassed, 300);
 
         for (let i = 0; i < this.bodyList.length - 1; i++) {
             let bodyA: FisiksBody = this.bodyList[i];

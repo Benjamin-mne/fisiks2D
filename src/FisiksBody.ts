@@ -31,6 +31,7 @@ export class FisiksBody {
     public height: number = 100; 
 
     public isStatic: boolean = false;
+    public controllable: boolean = false;
 
     constructor(params: Partial<FisiksBody>) {
         Object.assign(this, params);
