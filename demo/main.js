@@ -30,17 +30,21 @@ display.RegisterBehavior((body) => {
 
     if (body.rotationCenter.x - offSetX < 0) {
         body.linearVelocity.x = Math.abs(body.linearVelocity.x);
+        body.MoveTo(new Fisiks2DVector(0 + offSetX, body.position.y));
     }
 
     if (body.rotationCenter.x + offSetX > display.width) {
         body.linearVelocity.x = -body.linearVelocity.x;
+        body.MoveTo(new Fisiks2DVector(display.width - offSetX, body.position.y));
     }
 
     if (body.rotationCenter.y - offSetY < 0) {
         body.linearVelocity.y = Math.abs(body.linearVelocity.y);
+        body.MoveTo(new Fisiks2DVector(body.position.x, 0 + offSetY));
     }
 
     if (body.rotationCenter.y + offSetY > display.height) {
         body.linearVelocity.y = -body.linearVelocity.y;
+        body.MoveTo(new Fisiks2DVector(body.position.x, display.height - offSetY));
     }
 });

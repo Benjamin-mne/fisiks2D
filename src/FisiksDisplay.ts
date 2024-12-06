@@ -77,8 +77,9 @@ export class FisiksDisplay {
 
         for (let i = 0; i < this.bodyList.length; i++) {
             const body = this.bodyList[i];
+            
             if(body.controllable){
-                FisiksBodyController(this.bodyList[1], secondsPassed, 300);
+                FisiksBodyController(this.bodyList[i], secondsPassed, 300);
             }
 
             body.Steap(secondsPassed);

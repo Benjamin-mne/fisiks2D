@@ -128,6 +128,16 @@ export class FisiksBody {
         }
     }
 
+    MoveTo(position: Fisiks2DVector){
+        this.position = position;
+        this.rotationCenter = new Fisiks2DVector(this.position.x + this.width/2, this.position.y + this.height/2);
+
+        if(this.shape === ShapeType.Box){
+            this.vertices = this.CreateBoxVertices(this.width, this.height)
+        }
+    }
+
+
     ApplyForce(amount: Fisiks2DVector): void {
         this.force = amount;
     }
