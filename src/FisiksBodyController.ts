@@ -20,7 +20,7 @@ document.addEventListener('keyup', (event) => {
     }
 });
 
-export function FisiksBodyController(body: FisiksBody, secondsPassed: number, speed: number = 400) {
+export function FisiksBodyController(body: FisiksBody, secondsPassed: number, forceMagnitude: number = 400) {
     let dx = 0;
     let dy = 0;
 
@@ -30,9 +30,9 @@ export function FisiksBodyController(body: FisiksBody, secondsPassed: number, sp
     if (keys.s) dy += 1;
 
     if (dx !== 0 || dy !== 0) {
-        const direction = Fisiks2DVector.Normalize(new Fisiks2DVector(dx, dy));
-        const velocity = Fisiks2DVector.ScalarMultiplication(speed * secondsPassed, direction);
+        const forceDirection = Fisiks2DVector.Normalize(new Fisiks2DVector(dx, dy));
+        const force = Fisiks2DVector.ScalarMultiplication(forceMagnitude, forceDirection);
 
-        body.Move(velocity);
+        body.ApplyForce(force);
     }
 }

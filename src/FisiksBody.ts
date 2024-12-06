@@ -11,8 +11,10 @@ export class FisiksBody {
 
     linearVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
     rotationCenter: Fisiks2DVector = Fisiks2DVector.Zero;
+    rotationalVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
+
+    force: Fisiks2DVector = Fisiks2DVector.Zero;
     rotation: number = 0;
-    rotationalVelocity: number = 0;
 
     vertices: Fisiks2DVector[] = [];
     transformedVertices: Fisiks2DVector[] = [];
@@ -109,13 +111,12 @@ export class FisiksBody {
         return this.transformedVertices;
     }
     
-
     Rotate(amount: number){
         this.rotation = amount;
         this.GetTranformedVertices();
     }
 
-    Move(amount: Fisiks2DVector){
+    Move(amount: Fisiks2DVector): void {
         this.position = Fisiks2DVector.Add(this.position, amount);
         this.rotationCenter = Fisiks2DVector.Add(this.rotationCenter, amount);
 
@@ -124,6 +125,24 @@ export class FisiksBody {
                 this.vertices[i] = Fisiks2DVector.Add(this.vertices[i], amount);                
             }
         }
+    }
+
+    ApplyForce(amount: Fisiks2DVector): void {
+        this.force = amount;
+    }
+
+    Steap(time: number): void{
+        this.linearVelocity = Fisiks2DVector.Add(this.linearVelocity, Fisiks2DVector.ScalarMultiplication(time, this.force));
+        this.position = Fisiks2DVector.Add(this.position, Fisiks2DVector.ScalarMultiplication(time, this.linearVelocity));
+        this.rotationCenter = Fisiks2DVector.Add(this.rotationCenter, Fisiks2DVector.ScalarMultiplication(time, this.rotationalVelocity));
+    
+        if(this.shape === ShapeType.Box){
+            for (let i = 0; i < this.vertices.length; i++) {
+                this.vertices[i] = Fisiks2DVector.Add(this.vertices[i], Fisiks2DVector.ScalarMultiplication(time, this.rotationalVelocity));                
+            }
+        }
+
+        this.force = Fisiks2DVector.Zero;
     }
 
     Draw(){
@@ -136,9 +155,5 @@ export class FisiksBody {
         else {
             throw new Error("Property does not exist on ShapeType");
         }
-    }
-
-    Update(){
-
     }
 }

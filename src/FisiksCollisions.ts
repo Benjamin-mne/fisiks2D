@@ -20,6 +20,28 @@ export class FisiksCollisions {
         } 
     }
 
+    static ResolveCollision(bodyA: FisiksBody, bodyB: FisiksBody, normal: Fisiks2DVector): void {
+        let restitution: number = Math.min(bodyA.restitution, bodyB.restitution);
+        let relativeVelocity: Fisiks2DVector = Fisiks2DVector.Difference(bodyB.linearVelocity, bodyA.linearVelocity);
+    
+        let impulseNum: number = -(1 + restitution) * Fisiks2DVector.DotProduct(relativeVelocity, normal);
+        let impulseDen: number = (1 / bodyA.mass) + (1 / bodyB.mass);
+    
+        let impulse: number = impulseNum / impulseDen;
+    
+        let impulseVector: Fisiks2DVector = Fisiks2DVector.ScalarMultiplication(impulse, normal);
+    
+        bodyA.linearVelocity = Fisiks2DVector.Add(
+            bodyA.linearVelocity,
+            Fisiks2DVector.ScalarMultiplication(-1 / bodyA.mass, impulseVector)
+        );
+    
+        bodyB.linearVelocity = Fisiks2DVector.Add(
+            bodyB.linearVelocity,
+            Fisiks2DVector.ScalarMultiplication(1 / bodyB.mass, impulseVector)
+        );
+    }
+
     static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): void{
         const verticesA: Fisiks2DVector[] = PolygonA.vertices;
         const verticesB: Fisiks2DVector[] = PolygonB.vertices;
@@ -87,6 +109,8 @@ export class FisiksCollisions {
 
         PolygonA.Move(collisionResolutionVectorA);
         PolygonB.Move(collisionResolutionVectorB);
+
+        this.ResolveCollision(PolygonA, PolygonB, normal);
     }
 
     static IntersectCirclePolygon(Circle: FisiksBody, Polygon: FisiksBody): void{
@@ -165,6 +189,9 @@ export class FisiksCollisions {
 
         Circle.Move(collisionResolutionVectorA);
         Polygon.Move(collisionResolutionVectorB);
+
+        this.ResolveCollision(Circle, Polygon, normal);
+
     } 
 
     static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number, max: number } {
@@ -229,5 +256,7 @@ export class FisiksCollisions {
 
         CircleA.Move(collisionResolutionVectorA);
         CircleB.Move(collisionResolutionVectorB);
+
+        this.ResolveCollision(CircleA, CircleB, normal);
     }
 }
