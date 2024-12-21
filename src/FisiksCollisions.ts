@@ -20,26 +20,86 @@ export class FisiksCollisions {
         } 
     }
 
-    static ResolveCollision(bodyA: FisiksBody, bodyB: FisiksBody, normal: Fisiks2DVector): void {
-        let restitution: number = Math.min(bodyA.restitution, bodyB.restitution);
-        let relativeVelocity: Fisiks2DVector = Fisiks2DVector.Difference(bodyB.linearVelocity, bodyA.linearVelocity);
+    static ResolveCollision(bodyA: FisiksBody, bodyB: FisiksBody, normal: Fisiks2DVector, depth: number): void {
+        if (bodyA.isStatic && bodyB.isStatic) return;
     
-        let impulseNum: number = -(1 + restitution) * Fisiks2DVector.DotProduct(relativeVelocity, normal);
-        let impulseDen: number = (1 / bodyA.mass) + (1 / bodyB.mass);
+        if (bodyA.isStatic) {
+            bodyB.Move(Fisiks2DVector.ScalarMultiplication(depth, normal));
+        } else if (bodyB.isStatic) {
+            bodyA.Move(Fisiks2DVector.ScalarMultiplication(-depth, normal));
+        } else {
+            let halfDepth = depth / 2;
+            bodyA.Move(Fisiks2DVector.ScalarMultiplication(-halfDepth, normal));
+            bodyB.Move(Fisiks2DVector.ScalarMultiplication(halfDepth, normal));
+        }
     
-        let impulse: number = impulseNum / impulseDen;
+        let inverseMassA = bodyA.isStatic ? 0 : (1 / bodyA.mass);
+        let inverseMassB = bodyB.isStatic ? 0 : (1 / bodyB.mass);
     
-        let impulseVector: Fisiks2DVector = Fisiks2DVector.ScalarMultiplication(impulse, normal);
+        let restitution = Math.min(bodyA.restitution, bodyB.restitution);
+        let relativeVelocity = Fisiks2DVector.Difference(bodyB.linearVelocity, bodyA.linearVelocity);
     
-        bodyA.linearVelocity = Fisiks2DVector.Add(
-            bodyA.linearVelocity,
-            Fisiks2DVector.ScalarMultiplication(-1 / bodyA.mass, impulseVector)
-        );
+        if (Fisiks2DVector.DotProduct(relativeVelocity, normal) > 0) return; 
     
-        bodyB.linearVelocity = Fisiks2DVector.Add(
-            bodyB.linearVelocity,
-            Fisiks2DVector.ScalarMultiplication(1 / bodyB.mass, impulseVector)
-        );
+        let impulseNumerator = -(1 + restitution) * Fisiks2DVector.DotProduct(relativeVelocity, normal);
+        let impulseDenominator = inverseMassA + inverseMassB;
+    
+        if (impulseDenominator === 0) return;
+    
+        let impulse = impulseNumerator / impulseDenominator;
+        let impulseVector = Fisiks2DVector.ScalarMultiplication(impulse, normal);
+    
+        if (!bodyA.isStatic && !bodyB.isStatic) {
+            bodyA.linearVelocity = Fisiks2DVector.Add(
+                bodyA.linearVelocity,
+                Fisiks2DVector.ScalarMultiplication(-inverseMassA, impulseVector)
+            );
+    
+            bodyB.linearVelocity = Fisiks2DVector.Add(
+                bodyB.linearVelocity,
+                Fisiks2DVector.ScalarMultiplication(inverseMassB, impulseVector)
+            );
+        } else if (bodyA.isStatic) {
+            if (Math.abs(normal.x) > Math.abs(normal.y)) {
+                // horizontal
+                bodyB.linearVelocity = new Fisiks2DVector(
+                    -1 * bodyB.linearVelocity.x,
+                    bodyB.linearVelocity.y
+                );
+            } else if (Math.abs(normal.y) > Math.abs(normal.x)) {
+                // vertical
+                bodyB.linearVelocity = new Fisiks2DVector(
+                    bodyB.linearVelocity.x,
+                    -1 * bodyB.linearVelocity.y
+                );
+            } else {
+                // diagonal
+                bodyB.linearVelocity = new Fisiks2DVector(
+                    -1 * bodyB.linearVelocity.x,
+                    -1 * bodyB.linearVelocity.y
+                );
+            }
+        } else if (bodyB.isStatic) {
+            if (Math.abs(normal.x) > Math.abs(normal.y)) {
+                // horizontal
+                bodyA.linearVelocity = new Fisiks2DVector(
+                    -1 * bodyA.linearVelocity.x,
+                    bodyA.linearVelocity.y
+                );
+            } else if (Math.abs(normal.y) > Math.abs(normal.x)) {
+                // vertical
+                bodyA.linearVelocity = new Fisiks2DVector(
+                    bodyA.linearVelocity.x,
+                    -1 * bodyA.linearVelocity.y
+                );
+            } else {
+                // diagonal
+                bodyA.linearVelocity = new Fisiks2DVector(
+                    -1 * bodyA.linearVelocity.x,
+                    -1 * bodyA.linearVelocity.y
+                );
+            }
+        }
     }
 
     static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): void{
@@ -104,13 +164,7 @@ export class FisiksCollisions {
             normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
         }
 
-        let collisionResolutionVectorA = Fisiks2DVector.ScalarMultiplication(depth / -2, normal);
-        let collisionResolutionVectorB = Fisiks2DVector.ScalarMultiplication(depth / 2, normal);
-
-        PolygonA.Move(collisionResolutionVectorA);
-        PolygonB.Move(collisionResolutionVectorB);
-
-        this.ResolveCollision(PolygonA, PolygonB, normal);
+        this.ResolveCollision(PolygonA, PolygonB, normal, depth);
     }
 
     static IntersectCirclePolygon(Circle: FisiksBody, Polygon: FisiksBody): void{
@@ -183,16 +237,26 @@ export class FisiksCollisions {
         if(Fisiks2DVector.DotProduct(direction, normal) < 0){
             normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
         }
-        
-        let collisionResolutionVectorA = Fisiks2DVector.ScalarMultiplication(depth / -2, normal);
-        let collisionResolutionVectorB = Fisiks2DVector.ScalarMultiplication(depth / 2, normal);
-
-        Circle.Move(collisionResolutionVectorA);
-        Polygon.Move(collisionResolutionVectorB);
-
-        this.ResolveCollision(Circle, Polygon, normal);
-
+       
+        this.ResolveCollision(Circle, Polygon, normal, depth);
     } 
+
+    static IntersectCircles(CircleA: FisiksBody, CircleB: FisiksBody): void {
+        let normal: Fisiks2DVector = Fisiks2DVector.Zero;
+        let depth: number = 0;
+
+        let distance: number = Fisiks2DVector.Distance(CircleA.position, CircleB.position);
+        let radii: number = CircleA.radius + CircleB.radius;
+        
+        if(distance >= radii){
+            return;
+        }
+
+        normal = Fisiks2DVector.Normalize(Fisiks2DVector.Difference(CircleB.position, CircleA.position));
+        depth = radii - distance;
+
+        this.ResolveCollision(CircleA, CircleB, normal, depth);
+    }
 
     static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number, max: number } {
         let min = Number.POSITIVE_INFINITY;
@@ -235,28 +299,5 @@ export class FisiksCollisions {
         }
 
         return result;
-    }
-    
-    static IntersectCircles(CircleA: FisiksBody, CircleB: FisiksBody): void {
-        let normal: Fisiks2DVector = Fisiks2DVector.Zero;
-        let depth: number = 0;
-
-        let distance: number = Fisiks2DVector.Distance(CircleA.position, CircleB.position);
-        let radii: number = CircleA.radius + CircleB.radius;
-        
-        if(distance >= radii){
-            return;
-        }
-
-        normal = Fisiks2DVector.Normalize(Fisiks2DVector.Difference(CircleB.position, CircleA.position));
-        depth = radii - distance;
-
-        let collisionResolutionVectorA = Fisiks2DVector.ScalarMultiplication(depth / -2, normal);
-        let collisionResolutionVectorB = Fisiks2DVector.ScalarMultiplication(depth / 2, normal);
-
-        CircleA.Move(collisionResolutionVectorA);
-        CircleB.Move(collisionResolutionVectorB);
-
-        this.ResolveCollision(CircleA, CircleB, normal);
     }
 }
