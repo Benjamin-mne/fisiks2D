@@ -11,7 +11,7 @@ export class FisiksDisplay {
     oldTimeStamp: number = 0;
     bodyList: FisiksBody[];
 
-    gravity: Fisiks2DVector = new Fisiks2DVector(0, 9.8); 
+    gravity: Fisiks2DVector = Fisiks2DVector.Zero; 
 
     private externalBehaviors: ((body: FisiksBody) => void)[] = [];
 
@@ -57,6 +57,10 @@ export class FisiksDisplay {
         this.bodyList = this.bodyList.filter((_, idx) => idx === index);
     }
 
+    SetGravity(amount: Fisiks2DVector){
+        this.gravity = amount;
+    }
+
     ForEachBody(method: (body: FisiksBody) => void = () => {}): void {
         for (const body of this.bodyList) {
             method(body);
@@ -82,7 +86,7 @@ export class FisiksDisplay {
                 FisiksBodyController(this.bodyList[i], secondsPassed, 300);
             }
 
-            body.Steap(secondsPassed);
+            body.Steap(secondsPassed, this.gravity);
             body.Draw();
         }
 
