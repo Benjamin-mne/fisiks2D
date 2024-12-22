@@ -48,58 +48,16 @@ export class FisiksCollisions {
     
         let impulse = impulseNumerator / impulseDenominator;
         let impulseVector = Fisiks2DVector.ScalarMultiplication(impulse, normal);
-    
-        if (!bodyA.isStatic && !bodyB.isStatic) {
-            bodyA.linearVelocity = Fisiks2DVector.Add(
-                bodyA.linearVelocity,
-                Fisiks2DVector.ScalarMultiplication(-inverseMassA, impulseVector)
-            );
-    
-            bodyB.linearVelocity = Fisiks2DVector.Add(
-                bodyB.linearVelocity,
-                Fisiks2DVector.ScalarMultiplication(inverseMassB, impulseVector)
-            );
-        } else if (bodyA.isStatic) {
-            if (Math.abs(normal.x) > Math.abs(normal.y)) {
-                // horizontal
-                bodyB.linearVelocity = new Fisiks2DVector(
-                    -1 * bodyB.linearVelocity.x,
-                    bodyB.linearVelocity.y
-                );
-            } else if (Math.abs(normal.y) > Math.abs(normal.x)) {
-                // vertical
-                bodyB.linearVelocity = new Fisiks2DVector(
-                    bodyB.linearVelocity.x,
-                    -1 * bodyB.linearVelocity.y
-                );
-            } else {
-                // diagonal
-                bodyB.linearVelocity = new Fisiks2DVector(
-                    -1 * bodyB.linearVelocity.x,
-                    -1 * bodyB.linearVelocity.y
-                );
-            }
-        } else if (bodyB.isStatic) {
-            if (Math.abs(normal.x) > Math.abs(normal.y)) {
-                // horizontal
-                bodyA.linearVelocity = new Fisiks2DVector(
-                    -1 * bodyA.linearVelocity.x,
-                    bodyA.linearVelocity.y
-                );
-            } else if (Math.abs(normal.y) > Math.abs(normal.x)) {
-                // vertical
-                bodyA.linearVelocity = new Fisiks2DVector(
-                    bodyA.linearVelocity.x,
-                    -1 * bodyA.linearVelocity.y
-                );
-            } else {
-                // diagonal
-                bodyA.linearVelocity = new Fisiks2DVector(
-                    -1 * bodyA.linearVelocity.x,
-                    -1 * bodyA.linearVelocity.y
-                );
-            }
-        }
+
+        bodyA.linearVelocity = Fisiks2DVector.Add(
+            bodyA.linearVelocity,
+            Fisiks2DVector.ScalarMultiplication(-inverseMassA, impulseVector)
+        );
+
+        bodyB.linearVelocity = Fisiks2DVector.Add(
+            bodyB.linearVelocity,
+            Fisiks2DVector.ScalarMultiplication(inverseMassB, impulseVector)
+        );
     }
 
     static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): void{

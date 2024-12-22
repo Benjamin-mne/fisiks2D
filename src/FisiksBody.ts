@@ -142,11 +142,18 @@ export class FisiksBody {
         this.force = amount;
     }
 
-    Steap(time: number): void{
+    Steap(time: number, gravity: Fisiks2DVector): void{
+        if(this.isStatic) return
         if(this.mass === 0) return
-        const acceleration: Fisiks2DVector = Fisiks2DVector.ScalarMultiplication(1 / this.mass, this.force);
+        
+        //const acceleration: Fisiks2DVector = Fisiks2DVector.ScalarMultiplication(1 / this.mass, this.force);
+        //this.linearVelocity = Fisiks2DVector.Add(this.linearVelocity, Fisiks2DVector.ScalarMultiplication(time * 1000, acceleration));
 
-        this.linearVelocity = Fisiks2DVector.Add(this.linearVelocity, Fisiks2DVector.ScalarMultiplication(time * 1000, acceleration));
+        this.linearVelocity = Fisiks2DVector.Add(
+            this.linearVelocity,
+            Fisiks2DVector.ScalarMultiplication(time, gravity)
+        );
+
         this.position = Fisiks2DVector.Add(this.position, Fisiks2DVector.ScalarMultiplication(time, this.linearVelocity));
         this.rotationCenter = Fisiks2DVector.Add(this.rotationCenter, Fisiks2DVector.ScalarMultiplication(time, this.rotationalVelocity));
     
