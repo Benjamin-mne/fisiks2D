@@ -21,7 +21,14 @@ export class FisiksCollisions {
     }
 
     static ResolveCollision(bodyA: FisiksBody, bodyB: FisiksBody, normal: Fisiks2DVector, depth: number): void {
-        if (bodyA.isStatic && bodyB.isStatic) return;
+        bodyA.isColliding = true;
+        bodyB.isColliding = true;
+
+        if (bodyA.isStatic && bodyB.isStatic) {
+            bodyA.isColliding = false;
+            bodyB.isColliding = false;
+            return
+        };
     
         if (bodyA.isStatic) {
             bodyB.Move(Fisiks2DVector.ScalarMultiplication(depth, normal));
@@ -58,6 +65,9 @@ export class FisiksCollisions {
             bodyB.linearVelocity,
             Fisiks2DVector.ScalarMultiplication(inverseMassB, impulseVector)
         );
+
+        bodyA.isColliding = false;
+        bodyB.isColliding = false;
     }
 
     static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): void{
@@ -195,7 +205,7 @@ export class FisiksCollisions {
         if(Fisiks2DVector.DotProduct(direction, normal) < 0){
             normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
         }
-       
+        
         this.ResolveCollision(Circle, Polygon, normal, depth);
     } 
 

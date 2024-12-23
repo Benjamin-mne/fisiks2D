@@ -2,6 +2,7 @@ import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksBody } from "./FisiksBody";
 import { FisiksBodyController } from "./FisiksBodyController";
 import { FisiksCollisions } from "./FisiksCollisions";
+import { FisiksObserver } from "./FisiksObservers";
 import { id } from "./utils/utils";
 
 export class FisiksDisplay {
@@ -16,6 +17,24 @@ export class FisiksDisplay {
     gravity: Fisiks2DVector = Fisiks2DVector.Zero; 
 
     private externalBehaviors: ((body: FisiksBody) => void)[] = [];
+    private observers: FisiksObserver[] = [];
+
+    addObserver(observer: FisiksObserver): void {
+        this.observers.push(observer);
+    }
+
+    removeObserver(observer: FisiksObserver): void {
+        const index = this.observers.indexOf(observer);
+        if (index >= 0) {
+            this.observers.splice(index, 1);
+        }
+    }
+
+    notifyObservers(body: FisiksBody): void {
+        for (let observer of this.observers) {
+            observer.update(body);
+        }
+    }
 
     RegisterBehavior(behavior: (body: FisiksBody) => void): void {
         this.externalBehaviors.push(behavior);
@@ -120,8 +139,8 @@ export class FisiksDisplay {
     
             body.Steap(secondsPassed, this.gravity);
             body.Draw();
-    
             this.Interpolate(body, alpha);
+            this.notifyObservers(body);
         }
     
 

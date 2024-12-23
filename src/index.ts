@@ -5,3 +5,4 @@ export { FisiksCollisions } from './FisiksCollisions';
 export { FisiksDisplay } from './FisiksDisplay';
 export { FisiksShape, ShapeType } from './FisiksShape';
 export { FisiksTransform } from './FisiksTransform';
+export { FisiksObserver, FisiksBodyObserver } from './FisiksObservers'
