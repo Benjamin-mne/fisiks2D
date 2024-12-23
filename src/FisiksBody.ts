@@ -1,24 +1,30 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksShape } from "./FisiksShape";
 import { FisiksTransform } from "./FisiksTransform";
+import { generateId, id } from "./utils/utils";
 
 export enum ShapeType { Box, Circle};  
 
 export class FisiksBody {
+    id: id = generateId(); 
     context: CanvasRenderingContext2D | null = null;
     position: Fisiks2DVector = Fisiks2DVector.Zero;
+    previousPosition: Fisiks2DVector = Fisiks2DVector.Zero;
     color: string = 'blue';
 
     linearVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
+    previousVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
     rotationCenter: Fisiks2DVector = Fisiks2DVector.Zero;
     rotationalVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
 
     force: Fisiks2DVector = Fisiks2DVector.Zero;
     rotation: number = 0;
-
+    previousRotation: number = 0;
+    
     vertices: Fisiks2DVector[] = [];
     transformedVertices: Fisiks2DVector[] = [];
 
+    public isColliding: boolean = false;
 
     public area: number = 0;
     public density: number = 0;
@@ -136,7 +142,6 @@ export class FisiksBody {
             this.vertices = this.CreateBoxVertices(this.width, this.height)
         }
     }
-
 
     ApplyForce(amount: Fisiks2DVector): void {
         this.force = amount;
