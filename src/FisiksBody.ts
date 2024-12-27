@@ -147,7 +147,7 @@ export class FisiksBody {
         this.force = amount;
     }
 
-    Steap(time: number, gravity: Fisiks2DVector): void{
+    Step(time: number, gravity: Fisiks2DVector): void{
         if(this.isStatic) return
         if(this.mass === 0) return
         
