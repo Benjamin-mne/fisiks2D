@@ -29,7 +29,7 @@ export class FisiksBody {
     public area: number = 0;
     public density: number = 0;
     public mass: number = 0;
-    public restitution: number = 0;
+    public restitution: number = 0.5;
 
     public shape: ShapeType = ShapeType.Circle;
     public radius: number = 50; 
