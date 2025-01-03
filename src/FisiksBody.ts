@@ -1,4 +1,5 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
+import { FisiksAxisAlignedBoundingBox } from "./FisiksAABB";
 import { FisiksShape } from "./FisiksShape";
 import { FisiksTransform } from "./FisiksTransform";
 import { generateId, id } from "./utils/utils";
@@ -43,7 +44,7 @@ export class FisiksBody {
         Object.assign(this, params);
     }
 
-    public CreateCircle(radius: number, showCenter: boolean){
+    public CreateCircle(radius: number, showVertices: boolean){
         if(!this.context){
             throw new Error("No context provided.");
         }
@@ -55,8 +56,12 @@ export class FisiksBody {
 
         FisiksShape.DrawCircle(this.context, this.position, this.color, this.radius);
         
-        if(showCenter){
-            FisiksShape.DrawVertices(this.context, [new Fisiks2DVector(this.position.x, this.position.y)], 'red')
+        const AABB = this.GetAABB();
+
+        if(showVertices){
+            if (AABB instanceof FisiksAxisAlignedBoundingBox){
+                FisiksShape.DrawVertices(this.context, this.vertices.concat(this.rotationCenter), 'red', AABB)
+            } 
         }
     }
 
@@ -80,8 +85,12 @@ export class FisiksBody {
 
         FisiksShape.DrawPolygon(this.context, this.vertices, this.color);
 
+        const AABB = this.GetAABB();
+
         if(showVertices){
-            FisiksShape.DrawVertices(this.context, this.vertices.concat(this.rotationCenter), 'red')
+            if (AABB instanceof FisiksAxisAlignedBoundingBox){
+                FisiksShape.DrawVertices(this.context, this.vertices.concat(this.rotationCenter), 'red', AABB)
+            } 
         }
     }
 
@@ -124,6 +133,59 @@ export class FisiksBody {
         }
     
         return this.transformedVertices;
+    }
+
+    GetAABB(): FisiksAxisAlignedBoundingBox | Error {
+        let max: Fisiks2DVector = new Fisiks2DVector(Number.MIN_VALUE, Number.MIN_VALUE); 
+        let min: Fisiks2DVector = new Fisiks2DVector(Number.MAX_VALUE, Number.MAX_VALUE);
+
+        if(this.shape === ShapeType.Box){
+            this.vertices.forEach(vertex => {
+                if(vertex.x > max.x){
+                    max = new Fisiks2DVector(
+                        vertex.x,
+                        max.y
+                    )
+                }
+                if(vertex.y > max.y){
+                    max = new Fisiks2DVector(
+                        max.x,
+                        vertex.y
+                    )
+                }
+
+                if(vertex.x < min.x){
+                    min = new Fisiks2DVector(
+                        vertex.x,
+                        min.y
+                    )
+                }
+
+                if(vertex.y < min.y){
+                    min = new Fisiks2DVector(
+                        min.x,
+                        vertex.y
+                    )
+                }
+            });
+
+            return new FisiksAxisAlignedBoundingBox(min, max);
+        }
+        else if (this.shape === ShapeType.Circle){
+            min = new Fisiks2DVector(
+                this.rotationCenter.x - this.radius, 
+                this.rotationCenter.y - this.radius
+            );
+
+            max = new Fisiks2DVector(
+                this.rotationCenter.x + this.radius,
+                this.rotationCenter.y + this.radius
+            )
+
+            return new FisiksAxisAlignedBoundingBox(min, max);
+        }
+        
+        throw new Error('AxisAlignedBoundingBox Error!')
     }
     
     Rotate(amount: number){

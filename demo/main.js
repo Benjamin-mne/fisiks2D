@@ -15,6 +15,8 @@ const floor = new FisiksBody({
     isStatic: true    
 });
 
+// display.showVertices = true;
+    
 display.AddBody(floor);
 
 display.SetGravity(new Fisiks2DVector(0, 9.8 * 100));
@@ -45,22 +47,44 @@ display.RegisterBehavior((body) => {
     }
 });
 
+/**
 display.addObserver(new FisiksBodyObserver());
+*/
 
-display.GetCanvas().addEventListener('click', (e) => {
+let mouse = { x: 0, y: 0 };
+
+display.GetCanvas().addEventListener('mousemove', (e) => {
     const rect = display.GetCanvas().getBoundingClientRect();
-    const position = new Fisiks2DVector(e.clientX - rect.left, e.clientY - rect.top);
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+});
 
-    const body = new FisiksBody({
+document.addEventListener('keydown', (e) => {
+    const position = new Fisiks2DVector(mouse.x, mouse.y);
+
+    const circle = new FisiksBody({
         context: ctx,
         position,
         color: getRandomColor(),
         shape: ShapeType.Circle,
         radius: getRandomInRange(10, 50),
-        controllable: display.bodyList.length === 0, 
     });
 
-    display.AddBody(body);
+    const box = new FisiksBody({
+        context: ctx,
+        width: getRandomInRange(10, 50),
+        height: getRandomInRange(10, 50),
+        position: position,
+        color: getRandomColor(),
+        shape: ShapeType.Box,
+    });
+
+    if (e.key === 'a') {
+        display.AddBody(circle);
+    } else if (e.key === 's') {
+        display.AddBody(box);
+    }
 });
+
 
 display.StartGameLoop();

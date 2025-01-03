@@ -1,4 +1,5 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
+import { FisiksAxisAlignedBoundingBox } from "./FisiksAABB";
 
 export enum ShapeType { Box, Circle};  
 
@@ -17,12 +18,21 @@ export class FisiksShape {
         context.fill();
     }
 
-    public static DrawVertices(context: CanvasRenderingContext2D, vertices: Fisiks2DVector[], color: string){
+    public static DrawVertices(context: CanvasRenderingContext2D, vertices: Fisiks2DVector[], color: string, AABB: FisiksAxisAlignedBoundingBox){
         for (const vertex of vertices) {
             context.beginPath();
             context.arc(vertex.x, vertex.y, 3, 0, 2 * Math.PI);
             context.fillStyle = color;
             context.fill();  
+        }
+
+        let AABBVertices: Fisiks2DVector[] = [AABB.max, AABB.min]
+        
+        for (const vertex of AABBVertices) {
+            context.beginPath();
+            context.arc(vertex.x, vertex.y, 3, 0, 2 * Math.PI);
+            context.fillStyle = 'orange';
+            context.fill();
         }
     }
 
