@@ -16,6 +16,8 @@ export class FisiksDisplay {
     bodyMap: Map<id, FisiksBody> = new Map();
     gravity: Fisiks2DVector = Fisiks2DVector.Zero; 
 
+    showVertices: boolean = false;
+
     private externalBehaviors: ((body: FisiksBody) => void)[] = [];
     private observers: FisiksObserver[] = [];
 
@@ -139,7 +141,7 @@ export class FisiksDisplay {
                 }
     
                 body.Step(subStepTime, this.gravity);
-                body.Draw();
+                body.Draw(this.showVertices);
                 this.Interpolate(body, alpha);
                 this.notifyObservers(body);
             }

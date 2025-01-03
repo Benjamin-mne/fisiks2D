@@ -43,7 +43,7 @@ export class FisiksBody {
         Object.assign(this, params);
     }
 
-    public CreateCircle(radius: number){
+    public CreateCircle(radius: number, showCenter: boolean){
         if(!this.context){
             throw new Error("No context provided.");
         }
@@ -54,9 +54,13 @@ export class FisiksBody {
         this.mass = this.area;
 
         FisiksShape.DrawCircle(this.context, this.position, this.color, this.radius);
+        
+        if(showCenter){
+            FisiksShape.DrawVertices(this.context, [new Fisiks2DVector(this.position.x, this.position.y)], 'red')
+        }
     }
 
-    public CreateBox(width: number, height: number){
+    public CreateBox(width: number, height: number, showVertices: boolean){
         if(!this.context){
             throw new Error("No context provided.");
         }
@@ -75,6 +79,10 @@ export class FisiksBody {
         }
 
         FisiksShape.DrawPolygon(this.context, this.vertices, this.color);
+
+        if(showVertices){
+            FisiksShape.DrawVertices(this.context, this.vertices.concat(this.rotationCenter), 'red')
+        }
     }
 
     CreateBoxVertices(width: number, height: number): Fisiks2DVector[]{
@@ -171,12 +179,12 @@ export class FisiksBody {
         this.force = Fisiks2DVector.Zero;
     }
 
-    Draw(){
+    Draw(showVertices: boolean){
         if(this.shape === ShapeType.Circle){
-            this.CreateCircle(this.radius);
+            this.CreateCircle(this.radius, showVertices);
         }
         else if(this.shape === ShapeType.Box){
-            this.CreateBox(this.width, this.height);
+            this.CreateBox(this.width, this.height, showVertices);
         }
         else {
             throw new Error("Property does not exist on ShapeType");
