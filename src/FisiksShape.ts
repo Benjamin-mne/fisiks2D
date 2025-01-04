@@ -36,6 +36,15 @@ export class FisiksShape {
         }
     }
 
+    public static DrawPoints(context: CanvasRenderingContext2D, points: Fisiks2DVector[]){
+        for (const point of points) {
+            context.beginPath();
+            context.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+            context.fillStyle = 'green';
+            context.fill();  
+        }
+    }
+
     public static DrawPolygon(context: CanvasRenderingContext2D, vertices: Fisiks2DVector[], color: string ): void {
         
         if (vertices.length < 3) {
