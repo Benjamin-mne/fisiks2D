@@ -126,7 +126,7 @@ export class FisiksDisplay {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
         const alpha = secondsPassed / (1 / 60);
-        const iterations = 20; 
+        const iterations = 24; 
 
         this.ForEachBody((body) => {
             body.previousPosition = body.position;
@@ -153,9 +153,16 @@ export class FisiksDisplay {
     
             for (let i = 0; i < this.bodyList.length - 1; i++) {
                 const bodyA = this.bodyList[i];
+                const bodyAAABB = bodyA.GetAABB();
     
                 for (let j = i + 1; j < this.bodyList.length; j++) {
                     const bodyB = this.bodyList[j];
+                    const bodyBAABB = bodyB.GetAABB(); 
+
+                    if(bodyAAABB instanceof Error || bodyBAABB instanceof Error) continue
+
+                    if(!FisiksCollisions.BroadPhase(bodyAAABB, bodyBAABB)) continue
+
                     const Details: CollisionDetails | undefined = FisiksCollisions.NarrowPashe(bodyA, bodyB);
 
                     if(Details) {

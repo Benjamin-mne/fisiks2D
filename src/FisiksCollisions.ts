@@ -1,4 +1,5 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
+import { FisiksAxisAlignedBoundingBox } from "./FisiksAABB";
 import { FisiksBody, ShapeType } from "./FisiksBody";
 
 export interface CollisionDetails {
@@ -10,6 +11,14 @@ export interface CollisionDetails {
 }
 
 export class FisiksCollisions {
+    static BroadPhase(A: FisiksAxisAlignedBoundingBox, B: FisiksAxisAlignedBoundingBox) : boolean {
+        if(A.max.x <= A.min.x || B.max.x <= A.min.x || A.max.y <= A.min.y || B.max.y <= A.min.y) {
+            return false;
+        }
+
+        return true;
+    }
+
     public static NarrowPashe(BodyA: FisiksBody, BodyB: FisiksBody): CollisionDetails | undefined {
         if(BodyA.shape === ShapeType.Circle && BodyB.shape === ShapeType.Circle){
             return this.IntersectCircles(BodyA, BodyB);
