@@ -1,7 +1,7 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksBody } from "./FisiksBody";
 import { FisiksBodyController } from "./FisiksBodyController";
-import { FisiksCollisions } from "./FisiksCollisions";
+import { CollisionDetails, FisiksCollisions } from "./FisiksCollisions";
 import { FisiksObserver } from "./FisiksObservers";
 import { id } from "./utils/utils";
 
@@ -151,7 +151,12 @@ export class FisiksDisplay {
     
                 for (let j = i + 1; j < this.bodyList.length; j++) {
                     const bodyB = this.bodyList[j];
-                    FisiksCollisions.ResolveCollisions(bodyA, bodyB);
+                    const Details: CollisionDetails | undefined = FisiksCollisions.NarrowPashe(bodyA, bodyB);
+
+                    if(Details) {
+                        const { bodyA, bodyB, normal, depth } = Details;
+                        FisiksCollisions.SolveCollision(bodyA, bodyB, normal, depth);
+                    }
                 }
             }
         }

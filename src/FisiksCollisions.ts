@@ -1,26 +1,33 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksBody, ShapeType } from "./FisiksBody";
 
+export interface CollisionDetails {
+    bodyA: FisiksBody, 
+    bodyB: FisiksBody, 
+    normal: Fisiks2DVector, 
+    depth: number
+}
+
 export class FisiksCollisions {
-    public static ResolveCollisions(BodyA: FisiksBody, BodyB: FisiksBody){
+    public static NarrowPashe(BodyA: FisiksBody, BodyB: FisiksBody): CollisionDetails | undefined {
         if(BodyA.shape === ShapeType.Circle && BodyB.shape === ShapeType.Circle){
-            this.IntersectCircles(BodyA, BodyB);
+            return this.IntersectCircles(BodyA, BodyB);
         }
 
         if(BodyA.shape === ShapeType.Box && BodyB.shape === ShapeType.Box){
-            this.IntersectPolygons(BodyA, BodyB);
+            return this.IntersectPolygons(BodyA, BodyB);
         }
 
         if(BodyA.shape === ShapeType.Circle && BodyB.shape === ShapeType.Box){
-            this.IntersectCirclePolygon(BodyA, BodyB);
+            return this.IntersectCirclePolygon(BodyA, BodyB);
         } 
 
         if(BodyA.shape === ShapeType.Box && BodyB.shape === ShapeType.Circle){
-            this.IntersectCirclePolygon(BodyB, BodyA);
+            return this.IntersectCirclePolygon(BodyB, BodyA);
         } 
     }
 
-    static ResolveCollision(bodyA: FisiksBody, bodyB: FisiksBody, normal: Fisiks2DVector, depth: number): void {
+    static SolveCollision(bodyA: FisiksBody, bodyB: FisiksBody, normal: Fisiks2DVector, depth: number): void {
         bodyA.isColliding = true;
         bodyB.isColliding = true;
 
@@ -70,7 +77,7 @@ export class FisiksCollisions {
         bodyB.isColliding = false;
     }
 
-    static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): void{
+    static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): CollisionDetails | undefined {
         const verticesA: Fisiks2DVector[] = PolygonA.vertices;
         const verticesB: Fisiks2DVector[] = PolygonB.vertices;
 
@@ -132,10 +139,17 @@ export class FisiksCollisions {
             normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
         }
 
-        this.ResolveCollision(PolygonA, PolygonB, normal, depth);
+        const Details: CollisionDetails = {
+            bodyA: PolygonA,
+            bodyB: PolygonB,
+            normal,
+            depth
+        } 
+
+        return Details;
     }
 
-    static IntersectCirclePolygon(Circle: FisiksBody, Polygon: FisiksBody): void{
+    static IntersectCirclePolygon(Circle: FisiksBody, Polygon: FisiksBody): CollisionDetails | undefined {
         const vertices: Fisiks2DVector[] = Polygon.vertices;
 
         let normal: Fisiks2DVector = Fisiks2DVector.Zero;
@@ -205,11 +219,18 @@ export class FisiksCollisions {
         if(Fisiks2DVector.DotProduct(direction, normal) < 0){
             normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
         }
-        
-        this.ResolveCollision(Circle, Polygon, normal, depth);
-    } 
 
-    static IntersectCircles(CircleA: FisiksBody, CircleB: FisiksBody): void {
+        const Details: CollisionDetails = {
+            bodyA: Circle,
+            bodyB: Polygon,
+            normal,
+            depth
+        } 
+
+        return Details;
+    }
+
+    static IntersectCircles(CircleA: FisiksBody, CircleB: FisiksBody): CollisionDetails | undefined {
         let normal: Fisiks2DVector = Fisiks2DVector.Zero;
         let depth: number = 0;
 
@@ -223,7 +244,14 @@ export class FisiksCollisions {
         normal = Fisiks2DVector.Normalize(Fisiks2DVector.Difference(CircleB.position, CircleA.position));
         depth = radii - distance;
 
-        this.ResolveCollision(CircleA, CircleB, normal, depth);
+        const Details: CollisionDetails = {
+            bodyA: CircleA,
+            bodyB: CircleB,
+            normal,
+            depth
+        } 
+
+        return Details;
     }
 
     static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number, max: number } {
