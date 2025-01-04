@@ -5,6 +5,18 @@ const display = new FisiksDisplay(800, 500);
 document.body.appendChild(display.GetCanvas());
 const ctx = display.GetContext();
 
+document.addEventListener('DOMContentLoaded', () => {
+    const rect = display.GetCanvas().getBoundingClientRect();
+    mouse.x = rect.width / 2;
+    mouse.y = rect.height / 2;
+
+    display.GetCanvas().dispatchEvent(new MouseEvent('mousemove', {
+        clientX: rect.left + mouse.x,
+        clientY: rect.top + mouse.y,
+    }));
+});
+
+
 const floor = new FisiksBody({
     context: ctx,
     width: display.GetCanvas().width + 300,

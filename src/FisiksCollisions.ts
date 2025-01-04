@@ -5,7 +5,8 @@ export interface CollisionDetails {
     bodyA: FisiksBody, 
     bodyB: FisiksBody, 
     normal: Fisiks2DVector, 
-    depth: number
+    depth: number,
+    contactPoints: Fisiks2DVector[];
 }
 
 export class FisiksCollisions {
@@ -143,7 +144,8 @@ export class FisiksCollisions {
             bodyA: PolygonA,
             bodyB: PolygonB,
             normal,
-            depth
+            depth,
+            contactPoints: []
         } 
 
         return Details;
@@ -224,7 +226,8 @@ export class FisiksCollisions {
             bodyA: Circle,
             bodyB: Polygon,
             normal,
-            depth
+            depth,
+            contactPoints: []
         } 
 
         return Details;
@@ -241,6 +244,14 @@ export class FisiksCollisions {
             return;
         }
 
+        let contactPoint: Fisiks2DVector = Fisiks2DVector.Add(
+            CircleA.position,
+            Fisiks2DVector.ScalarMultiplication(
+                CircleA.radius,
+                Fisiks2DVector.Normalize(Fisiks2DVector.Difference(CircleB.position, CircleA.position)))
+            ) 
+
+
         normal = Fisiks2DVector.Normalize(Fisiks2DVector.Difference(CircleB.position, CircleA.position));
         depth = radii - distance;
 
@@ -248,7 +259,8 @@ export class FisiksCollisions {
             bodyA: CircleA,
             bodyB: CircleB,
             normal,
-            depth
+            depth,
+            contactPoints: [contactPoint]
         } 
 
         return Details;

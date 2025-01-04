@@ -1,8 +1,10 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksBody } from "./FisiksBody";
 import { FisiksBodyController } from "./FisiksBodyController";
+import { FisiksCollisionManifold } from "./FisiksCollisionManifold";
 import { CollisionDetails, FisiksCollisions } from "./FisiksCollisions";
 import { FisiksObserver } from "./FisiksObservers";
+import { FisiksShape } from "./FisiksShape";
 import { id } from "./utils/utils";
 
 export class FisiksDisplay {
@@ -17,6 +19,7 @@ export class FisiksDisplay {
     gravity: Fisiks2DVector = Fisiks2DVector.Zero; 
 
     showVertices: boolean = false;
+    contactList: FisiksCollisionManifold[] = []; 
 
     private externalBehaviors: ((body: FisiksBody) => void)[] = [];
     private observers: FisiksObserver[] = [];
@@ -145,6 +148,8 @@ export class FisiksDisplay {
                 this.Interpolate(body, alpha);
                 this.notifyObservers(body);
             }
+
+            this.contactList = [];
     
             for (let i = 0; i < this.bodyList.length - 1; i++) {
                 const bodyA = this.bodyList[i];
@@ -154,10 +159,25 @@ export class FisiksDisplay {
                     const Details: CollisionDetails | undefined = FisiksCollisions.NarrowPashe(bodyA, bodyB);
 
                     if(Details) {
-                        const { bodyA, bodyB, normal, depth } = Details;
-                        FisiksCollisions.SolveCollision(bodyA, bodyB, normal, depth);
+                        const { bodyA, bodyB, normal, depth, contactPoints } = Details;
+
+                        const contact: FisiksCollisionManifold  = new FisiksCollisionManifold(
+                            bodyA, 
+                            bodyB, 
+                            normal, 
+                            depth, 
+                            contactPoints
+                        );
+
+                        this.contactList.push(contact);
                     }
                 }
+            }
+
+            for (let i = 0; i < this.contactList.length; i++){
+                const { bodyA, bodyB, normal, depth, contactPoints } = this.contactList[i];
+                FisiksShape.DrawPoints(this.GetContext(), contactPoints)
+                FisiksCollisions.SolveCollision(bodyA, bodyB, normal, depth);
             }
         }
 
