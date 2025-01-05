@@ -45,6 +45,15 @@ export class FisiksShape {
         }
     }
 
+    public static DrawAxis(context: CanvasRenderingContext2D, axis: Fisiks2DVector, position: Fisiks2DVector): void {
+        context.beginPath();
+        context.moveTo(position.x, position.y);
+        context.lineTo(position.x + axis.x * 50, position.y + axis.y * 50);
+        context.strokeStyle = 'red'; 
+        context.lineWidth = 2;
+        context.stroke();
+    }
+    
     public static DrawPolygon(context: CanvasRenderingContext2D, vertices: Fisiks2DVector[], color: string ): void {
         
         if (vertices.length < 3) {
