@@ -1,6 +1,7 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksAxisAlignedBoundingBox } from "./FisiksAABB";
 import { FisiksBody, ShapeType } from "./FisiksBody";
+import { Segment } from "./utils/utils";
 
 export interface CollisionDetails {
     bodyA: FisiksBody, 
@@ -8,6 +9,11 @@ export interface CollisionDetails {
     normal: Fisiks2DVector, 
     depth: number,
     contactPoints: Fisiks2DVector[];
+}
+
+interface DistanceContactPoint {
+    distanceSq: number;
+    contactPoint: Fisiks2DVector;
 }
 
 export class FisiksCollisions {
@@ -231,12 +237,29 @@ export class FisiksCollisions {
             normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
         }
 
+        let minDistanceSq: number = Number.MAX_VALUE;  
+        let contact: Fisiks2DVector = Fisiks2DVector.Zero;
+
+        for(let i = 0; i < Polygon.vertices.length; i++){
+
+            const vertexA: Fisiks2DVector = Polygon.vertices[i];
+            const vertexB: Fisiks2DVector = Polygon.vertices[(i + 1) % Polygon.vertices.length];
+            const segment: Segment = new Segment(vertexA, vertexB);
+            
+            const { distanceSq, contactPoint } = this.FindDistancePointSegment(Circle.rotationCenter, segment);
+
+            if (distanceSq < minDistanceSq){
+                minDistanceSq = distanceSq;
+                contact = contactPoint;
+            }
+        }
+
         const Details: CollisionDetails = {
             bodyA: Circle,
             bodyB: Polygon,
             normal,
             depth,
-            contactPoints: []
+            contactPoints: [contact]
         } 
 
         return Details;
@@ -273,6 +296,35 @@ export class FisiksCollisions {
         } 
 
         return Details;
+    }
+
+    static FindDistancePointSegment(point: Fisiks2DVector, segment: Segment): DistanceContactPoint {
+        let contactPoint: Fisiks2DVector; 
+        
+        const AB: Fisiks2DVector = Fisiks2DVector.Difference(segment.pointB, segment.pointA);
+        const AP: Fisiks2DVector = Fisiks2DVector.Difference(point, segment.pointA);
+        
+        const projection: number = Fisiks2DVector.DotProduct(AP, AB);
+        const ABMagnitudeSquared: number = AB.GetSquaredMagnitude(); 
+        const distance: number = projection / ABMagnitudeSquared;
+
+        if (distance <= 0){
+            contactPoint = segment.pointA;
+        } else if (distance >= 1){
+            contactPoint = segment.pointB;
+        } else {
+            contactPoint = Fisiks2DVector.Add(
+                segment.pointA,
+                Fisiks2DVector.ScalarMultiplication(distance, AB)
+            )
+        }
+
+        const distanceSquared = Fisiks2DVector.SquaredDistance(point, contactPoint)
+
+        return {
+            distanceSq: distanceSquared,
+            contactPoint
+        };
     }
 
     static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number, max: number } {
