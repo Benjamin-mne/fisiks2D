@@ -35,6 +35,13 @@ export class Fisiks2DVector {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
+    public static SquaredDistance(vector: Fisiks2DVector, otherVector: Fisiks2DVector): number {
+        const dx: number = otherVector.x - vector.x;
+        const dy: number = otherVector.y - vector.y; 
+
+        return dx * dx + dy * dy;
+    }
+
     public static Transform(vector: Fisiks2DVector, transform: FisiksTransform): Fisiks2DVector {
         const relativeVector = new Fisiks2DVector(
             vector.x - transform.positionX,
@@ -59,6 +66,10 @@ export class Fisiks2DVector {
 
     public GetMagnitude(): number {
         return Math.sqrt((this.x * this.x) + (this.y * this.y));
+    }
+
+    public GetSquaredMagnitude(): number {
+        return (this.x * this.x) + (this.y * this.y);
     }
 
     public AreEquals(otherVector: Fisiks2DVector): boolean {
