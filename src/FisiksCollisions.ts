@@ -104,20 +104,21 @@ export class FisiksCollisions {
             const VertexA: Fisiks2DVector = verticesA[i];
             const VertexB: Fisiks2DVector = verticesA[(i + 1) % verticesA.length];
             const edge: Fisiks2DVector = Fisiks2DVector.Difference(VertexB, VertexA);
-            const axis: Fisiks2DVector = Fisiks2DVector.Normalize(new Fisiks2DVector(edge.y * -1, edge.x));
-            
-            const { min: minA, max: maxA } = this.ProjectVertices(verticesA, axis);
-            const { min: minB, max: maxB } = this.ProjectVertices(verticesB, axis);
 
-            const epsilon = 1e-6;
+            let axis: Fisiks2DVector = new Fisiks2DVector(edge.y * -1, edge.x);
+            axis = Fisiks2DVector.Normalize(axis)
 
-            if (minA > maxB + epsilon || minB > maxA + epsilon) {
+            const projA = this.ProjectVertices(verticesA, axis);
+            const projB = this.ProjectVertices(verticesB, axis);
+
+            if(projA.min >= projB.max || projB.min >= projA.max)
+            {
                 return;
             }
 
-            const axisDepth: number = Math.min(maxB - minA, maxA - minB); 
+            const axisDepth: number = Math.min(projB.max - projA.min, projA.max - projB.min); 
             
-            if(axisDepth < depth){
+            if(axisDepth < depth) {
                 depth = axisDepth;
                 normal = axis;
             }
@@ -127,27 +128,24 @@ export class FisiksCollisions {
             const VertexA: Fisiks2DVector = verticesB[i];
             const VertexB: Fisiks2DVector = verticesB[(i + 1) % verticesB.length];
             const edge: Fisiks2DVector = Fisiks2DVector.Difference(VertexB, VertexA);
-            const axis: Fisiks2DVector = Fisiks2DVector.Normalize(new Fisiks2DVector(edge.y * -1, edge.x));
             
-            const { min: minA, max: maxA } = this.ProjectVertices(verticesA, axis);
-            const { min: minB, max: maxB } = this.ProjectVertices(verticesB, axis);
+            let axis: Fisiks2DVector = new Fisiks2DVector(edge.y * -1, edge.x);
+            axis = Fisiks2DVector.Normalize(axis)
 
-            const epsilon = 1e-6; 
-            
-            if (minA > maxB + epsilon || minB > maxA + epsilon) {
+            const projA = this.ProjectVertices(verticesA, axis);
+            const projB = this.ProjectVertices(verticesB, axis);
+
+            if (projA.min >= projB.max || projB.min >= projA.max){
                 return;
             }
 
-            const axisDepth: number = Math.min(maxB - minA, maxA - minB); 
+            const axisDepth: number = Math.min(projB.max - projA.min, projA.max - projB.min); 
             
-            if(axisDepth < depth){
+            if(axisDepth < depth) {
                 depth = axisDepth;
                 normal = axis;
             }
         }
-
-        depth = depth / normal.GetMagnitude();
-        normal = Fisiks2DVector.Normalize(normal);
 
         let direction: Fisiks2DVector = Fisiks2DVector.Difference(PolygonB.rotationCenter, PolygonA.rotationCenter); 
         
@@ -155,15 +153,46 @@ export class FisiksCollisions {
             normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
         }
 
+        const contactPoints = this.FindContactsPointsPolygons(PolygonA, PolygonB);
+
         const Details: CollisionDetails = {
             bodyA: PolygonA,
             bodyB: PolygonB,
             normal,
             depth,
-            contactPoints: []
+            contactPoints
         } 
 
         return Details;
+    }
+
+    static FindContactsPointsPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): Fisiks2DVector[]{
+        let minDistanceSq: number = Number.MAX_VALUE;  
+        let contactPoints: Fisiks2DVector[] = [];
+        
+        for (let i = 0; i < PolygonA.vertices.length; i++) {
+            const PointA = PolygonA.vertices[i];
+        
+            for (let j = 0; j < PolygonB.vertices.length; j++) {
+                const CurrentVertexB = PolygonB.vertices[j];
+                const NextVertexB = PolygonB.vertices[(j + 1) % PolygonB.vertices.length]; 
+                const segment = new Segment(CurrentVertexB, NextVertexB);
+                
+                const { contactPoint, distanceSq } = this.FindDistancePointSegment(PointA, segment);
+                
+                const epsilon = 1e-6;
+
+                if (distanceSq < minDistanceSq - epsilon) {
+                    minDistanceSq = distanceSq;
+                    contactPoints = [contactPoint];  
+                } else if (Math.abs(distanceSq - minDistanceSq) < epsilon) {
+                    contactPoints.push(contactPoint);
+                }
+                
+            }     
+        }
+
+        return contactPoints;
     }
 
     static IntersectCirclePolygon(Circle: FisiksBody, Polygon: FisiksBody): CollisionDetails | undefined {
@@ -328,13 +357,15 @@ export class FisiksCollisions {
     }
 
     static ProjectVertices(vertices: Fisiks2DVector[], axis: Fisiks2DVector): { min: number, max: number } {
-        let min = Number.POSITIVE_INFINITY;
-        let max = Number.NEGATIVE_INFINITY;
+        let min = Number.MAX_VALUE;
+        let max = Number.MIN_VALUE;
     
-        for (const vertex of vertices) {
-            const projection = Fisiks2DVector.DotProduct(vertex, axis);
-            min = Math.min(min, projection);
-            max = Math.max(max, projection);
+        for(let i = 0; i < vertices.length; i++){
+            const vertex: Fisiks2DVector = vertices[i];
+            const projection: number = Fisiks2DVector.DotProduct(vertex, axis);
+            
+            if(projection < min) { min = projection;}
+            if(projection > max) { max = projection;}
         }
     
         return { min, max };
