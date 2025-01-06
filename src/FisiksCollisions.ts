@@ -1,6 +1,7 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
 import { FisiksAxisAlignedBoundingBox } from "./FisiksAABB";
 import { FisiksBody, ShapeType } from "./FisiksBody";
+import { FisiksCollisionManifold } from "./FisiksCollisionManifold";
 import { Segment } from "./utils/utils";
 
 export interface CollisionDetails {
@@ -43,26 +44,7 @@ export class FisiksCollisions {
         } 
     }
 
-    static SolveCollision(bodyA: FisiksBody, bodyB: FisiksBody, normal: Fisiks2DVector, depth: number): void {
-        bodyA.isColliding = true;
-        bodyB.isColliding = true;
-
-        if (bodyA.isStatic && bodyB.isStatic) {
-            bodyA.isColliding = false;
-            bodyB.isColliding = false;
-            return
-        };
-    
-        if (bodyA.isStatic) {
-            bodyB.Move(Fisiks2DVector.ScalarMultiplication(depth, normal));
-        } else if (bodyB.isStatic) {
-            bodyA.Move(Fisiks2DVector.ScalarMultiplication(-depth, normal));
-        } else {
-            let halfDepth = depth / 2;
-            bodyA.Move(Fisiks2DVector.ScalarMultiplication(-halfDepth, normal));
-            bodyB.Move(Fisiks2DVector.ScalarMultiplication(halfDepth, normal));
-        }
-    
+    static SolveCollision(bodyA: FisiksBody, bodyB: FisiksBody, normal: Fisiks2DVector): void {
         let inverseMassA = bodyA.isStatic ? 0 : (1 / bodyA.mass);
         let inverseMassB = bodyB.isStatic ? 0 : (1 / bodyB.mass);
     
@@ -88,9 +70,28 @@ export class FisiksCollisions {
             bodyB.linearVelocity,
             Fisiks2DVector.ScalarMultiplication(inverseMassB, impulseVector)
         );
+    }
 
-        bodyA.isColliding = false;
-        bodyB.isColliding = false;
+    static SolveCollisionWithRotation(contact: FisiksCollisionManifold): void {
+        // mañana se intentará de nuevo (:
+    }
+
+    static SeparateBodies(bodyA: FisiksBody, bodyB:FisiksBody, normal: Fisiks2DVector, depth: number){
+        if (bodyA.isStatic && bodyB.isStatic) {
+            bodyA.isColliding = false;
+            bodyB.isColliding = false;
+            return
+        };
+    
+        if (bodyA.isStatic) {
+            bodyB.Move(Fisiks2DVector.ScalarMultiplication(depth, normal));
+        } else if (bodyB.isStatic) {
+            bodyA.Move(Fisiks2DVector.ScalarMultiplication(-depth, normal));
+        } else {
+            let halfDepth = depth / 2;
+            bodyA.Move(Fisiks2DVector.ScalarMultiplication(-halfDepth, normal));
+            bodyB.Move(Fisiks2DVector.ScalarMultiplication(halfDepth, normal));
+        }
     }
 
     static IntersectPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): CollisionDetails | undefined {
