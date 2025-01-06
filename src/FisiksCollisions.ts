@@ -166,35 +166,38 @@ export class FisiksCollisions {
         return Details;
     }
 
-    static FindContactsPointsPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): Fisiks2DVector[]{
-        let minDistanceSq: number = Number.MAX_VALUE;  
+    static FindContactsPointsPolygons(PolygonA: FisiksBody, PolygonB: FisiksBody): Fisiks2DVector[] {
+        let minDistanceSq: number = Number.MAX_VALUE;
         let contactPoints: Fisiks2DVector[] = [];
-        
-        for (let i = 0; i < PolygonA.vertices.length; i++) {
-            const PointA = PolygonA.vertices[i];
-        
-            for (let j = 0; j < PolygonB.vertices.length; j++) {
-                const CurrentVertexB = PolygonB.vertices[j];
-                const NextVertexB = PolygonB.vertices[(j + 1) % PolygonB.vertices.length]; 
-                const segment = new Segment(CurrentVertexB, NextVertexB);
-                
-                const { contactPoint, distanceSq } = this.FindDistancePointSegment(PointA, segment);
-                
-                const epsilon = 1e-6;
-
-                if (distanceSq < minDistanceSq - epsilon) {
-                    minDistanceSq = distanceSq;
-                    contactPoints = [contactPoint];  
-                } else if (Math.abs(distanceSq - minDistanceSq) < epsilon) {
-                    contactPoints.push(contactPoint);
+        const epsilon = 1e-6;
+    
+        const findContacts = (sourcePolygon: FisiksBody, targetPolygon: FisiksBody) => {
+            for (let i = 0; i < sourcePolygon.vertices.length; i++) {
+                const point = sourcePolygon.vertices[i];
+    
+                for (let j = 0; j < targetPolygon.vertices.length; j++) {
+                    const currentVertex = targetPolygon.vertices[j];
+                    const nextVertex = targetPolygon.vertices[(j + 1) % targetPolygon.vertices.length];
+                    const segment = new Segment(currentVertex, nextVertex);
+    
+                    const { contactPoint, distanceSq } = this.FindDistancePointSegment(point, segment);
+    
+                    if (distanceSq < minDistanceSq - epsilon) {
+                        minDistanceSq = distanceSq;
+                        contactPoints = [contactPoint];
+                    } else if (Math.abs(distanceSq - minDistanceSq) < epsilon) {
+                        contactPoints.push(contactPoint);
+                    }
                 }
-                
-            }     
-        }
-
+            }
+        };
+    
+        findContacts(PolygonA, PolygonB);
+        findContacts(PolygonB, PolygonA);
+    
         return contactPoints;
     }
-
+    
     static IntersectCirclePolygon(Circle: FisiksBody, Polygon: FisiksBody): CollisionDetails | undefined {
         const vertices: Fisiks2DVector[] = Polygon.vertices;
 
@@ -266,18 +269,17 @@ export class FisiksCollisions {
             normal = Fisiks2DVector.ScalarMultiplication(-1, normal);
         }
 
-        let minDistanceSq: number = Number.MAX_VALUE;  
         let contact: Fisiks2DVector = Fisiks2DVector.Zero;
+        let minDistanceSq: number = Number.MAX_VALUE;
 
-        for(let i = 0; i < Polygon.vertices.length; i++){
-
-            const vertexA: Fisiks2DVector = Polygon.vertices[i];
-            const vertexB: Fisiks2DVector = Polygon.vertices[(i + 1) % Polygon.vertices.length];
+        for (let i = 0; i < vertices.length; i++) {
+            const vertexA: Fisiks2DVector = vertices[i];
+            const vertexB: Fisiks2DVector = vertices[(i + 1) % vertices.length];
             const segment: Segment = new Segment(vertexA, vertexB);
-            
+
             const { distanceSq, contactPoint } = this.FindDistancePointSegment(Circle.rotationCenter, segment);
 
-            if (distanceSq < minDistanceSq){
+            if (distanceSq < minDistanceSq) {
                 minDistanceSq = distanceSq;
                 contact = contactPoint;
             }
@@ -328,28 +330,33 @@ export class FisiksCollisions {
     }
 
     static FindDistancePointSegment(point: Fisiks2DVector, segment: Segment): DistanceContactPoint {
-        let contactPoint: Fisiks2DVector; 
-        
+        let contactPoint: Fisiks2DVector;
+    
         const AB: Fisiks2DVector = Fisiks2DVector.Difference(segment.pointB, segment.pointA);
         const AP: Fisiks2DVector = Fisiks2DVector.Difference(point, segment.pointA);
-        
-        const projection: number = Fisiks2DVector.DotProduct(AP, AB);
-        const ABMagnitudeSquared: number = AB.GetSquaredMagnitude(); 
-        const distance: number = projection / ABMagnitudeSquared;
-
-        if (distance <= 0){
+    
+        const ABMagnitudeSquared: number = AB.GetSquaredMagnitude();
+    
+        if (ABMagnitudeSquared === 0) {
             contactPoint = segment.pointA;
-        } else if (distance >= 1){
-            contactPoint = segment.pointB;
         } else {
-            contactPoint = Fisiks2DVector.Add(
-                segment.pointA,
-                Fisiks2DVector.ScalarMultiplication(distance, AB)
-            )
+            const projection: number = Fisiks2DVector.DotProduct(AP, AB);
+            const t: number = projection / ABMagnitudeSquared;
+    
+            if (t <= 0) {
+                contactPoint = segment.pointA;
+            } else if (t >= 1) {
+                contactPoint = segment.pointB;
+            } else {
+                contactPoint = Fisiks2DVector.Add(
+                    segment.pointA,
+                    Fisiks2DVector.ScalarMultiplication(t, AB)
+                );
+            }
         }
-
-        const distanceSquared = Fisiks2DVector.SquaredDistance(point, contactPoint)
-
+    
+        const distanceSquared = Fisiks2DVector.SquaredDistance(point, contactPoint);
+    
         return {
             distanceSq: distanceSquared,
             contactPoint
