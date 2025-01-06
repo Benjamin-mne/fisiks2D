@@ -27,9 +27,20 @@ const floor = new FisiksBody({
     isStatic: true    
 });
 
-// display.showVertices = true;
-    
+const ramp = new FisiksBody({
+    context: ctx,
+    width:  300,
+    height: 15,
+    position: new Fisiks2DVector(50, 150),
+    color: 'white',
+    shape: ShapeType.Box,
+    isStatic: true,
+    rotation: Math.PI / 10
+})
+
+
 display.AddBody(floor);
+display.AddBody(ramp);
 
 display.SetGravity(new Fisiks2DVector(0, 9.8 * 100));
 
@@ -58,10 +69,6 @@ display.RegisterBehavior((body) => {
         body.position.y = -offSetY; 
     }
 });
-
-/**
-display.addObserver(new FisiksBodyObserver());
-*/
 
 let mouse = { x: 0, y: 0 };
 

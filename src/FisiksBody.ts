@@ -18,6 +18,8 @@ export class FisiksBody {
     rotationCenter: Fisiks2DVector = Fisiks2DVector.Zero;
     rotationalVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
 
+    inertia: number = 0;
+
     force: Fisiks2DVector = Fisiks2DVector.Zero;
     rotation: number = 0;
     previousRotation: number = 0;
@@ -76,6 +78,12 @@ export class FisiksBody {
         this.area = width * height;
         this.density = this.area;
         this.mass = this.area;
+
+        let inertia = this.CalculateRotationalInertia();
+
+        if (typeof inertia === 'number') {
+            this.inertia = inertia;
+        }
         
         if(this.transformedVertices.length === 0){
             this.vertices = this.CreateBoxVertices(width, height);
@@ -83,13 +91,19 @@ export class FisiksBody {
             this.vertices = this.transformedVertices;
         }
 
+        if(this.rotation > 0) {
+            this.Rotate(this.rotation);
+            this.rotation = 0;
+        }
+
         FisiksShape.DrawPolygon(this.context, this.vertices, this.color);
 
-        const AABB = this.GetAABB();
+        const AABB = new FisiksAxisAlignedBoundingBox(Fisiks2DVector.Zero, Fisiks2DVector.Zero);
 
         if(showVertices){
             if (AABB instanceof FisiksAxisAlignedBoundingBox){
-                FisiksShape.DrawVertices(this.context, this.vertices.concat(this.rotationCenter), 'red', AABB)
+                const vertices:Fisiks2DVector[] = this.vertices.concat(this.rotationCenter);
+                FisiksShape.DrawVertices(this.context, [vertices[4]], 'red', AABB)
             } 
         }
     }
@@ -191,6 +205,16 @@ export class FisiksBody {
     Rotate(amount: number){
         this.rotation = amount;
         this.GetTranformedVertices();
+    }
+
+    CalculateRotationalInertia(): number {
+        if (this.shape === ShapeType.Circle) {
+            return (1 / 2) * this.mass * (this.radius * this.radius);
+        } else if (this.shape === ShapeType.Box) {
+            return (1 / 12) * this.mass * (this.height * this.height + this.width * this.width);
+        } else {
+            throw new Error('No Valid Shape Type.');
+        }
     }
 
     Move(amount: Fisiks2DVector): void {
