@@ -18,10 +18,12 @@ export class FisiksBody {
     rotationCenter: Fisiks2DVector = Fisiks2DVector.Zero;
     rotationalVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
 
+    angle: number = 0;
+    angularVelocity: number = 0;
+
     inertia: number = 0;
 
     force: Fisiks2DVector = Fisiks2DVector.Zero;
-    rotation: number = 0;
     previousRotation: number = 0;
     
     vertices: Fisiks2DVector[] = [];
@@ -91,9 +93,9 @@ export class FisiksBody {
             this.vertices = this.transformedVertices;
         }
 
-        if(this.rotation > 0) {
-            this.Rotate(this.rotation);
-            this.rotation = 0;
+        if(this.angle > 0) {
+            this.Rotate(this.angle);
+            this.angle = 0;
         }
 
         FisiksShape.DrawPolygon(this.context, this.vertices, this.color);
@@ -140,7 +142,7 @@ export class FisiksBody {
     GetTranformedVertices(): Fisiks2DVector[] {
         for (let i = 0; i < this.vertices.length; i++) {
             const vertex: Fisiks2DVector = this.vertices[i];
-            const transform: FisiksTransform = new FisiksTransform(this.rotationCenter, this.rotation);
+            const transform: FisiksTransform = new FisiksTransform(this.rotationCenter, this.angle);
             const rotatedVertex = Fisiks2DVector.Transform(vertex, transform);
             
             this.transformedVertices[i] = rotatedVertex;
@@ -203,7 +205,7 @@ export class FisiksBody {
     }
     
     Rotate(amount: number){
-        this.rotation = amount;
+        this.angle = amount;
         this.GetTranformedVertices();
     }
 
@@ -256,6 +258,8 @@ export class FisiksBody {
         this.position = Fisiks2DVector.Add(this.position, Fisiks2DVector.ScalarMultiplication(time, this.linearVelocity));
         this.rotationCenter = Fisiks2DVector.Add(this.rotationCenter, Fisiks2DVector.ScalarMultiplication(time, this.rotationalVelocity));
     
+        this.angle += this.angularVelocity * time;
+
         if(this.shape === ShapeType.Box){
             for (let i = 0; i < this.vertices.length; i++) {
                 this.vertices[i] = Fisiks2DVector.Add(this.vertices[i], Fisiks2DVector.ScalarMultiplication(time, this.rotationalVelocity));                

@@ -115,7 +115,7 @@ export class FisiksDisplay {
             Fisiks2DVector.ScalarMultiplication(alpha, body.linearVelocity)
         );
     
-        body.rotation = body.previousRotation + (alpha * (body.rotation - body.previousRotation));
+        body.angle = body.previousRotation + (alpha * (body.angle - body.previousRotation));
     }
     
 
@@ -131,7 +131,7 @@ export class FisiksDisplay {
         this.ForEachBody((body) => {
             body.previousPosition = body.position;
             body.previousVelocity = body.linearVelocity;
-            body.previousRotation = body.rotation;
+            body.previousRotation = body.angle;
         });
 
         const subStepTime = secondsPassed / iterations;
@@ -184,7 +184,10 @@ export class FisiksDisplay {
             for (const contact of this.contactList) {
                 const { bodyA, bodyB, normal, depth, contactPoints } = contact;
                 FisiksShape.DrawPoints(this.GetContext(), contactPoints);
-                FisiksCollisions.SolveCollision(bodyA, bodyB, normal, depth);
+
+                FisiksCollisions.SeparateBodies(bodyA, bodyB, normal, depth);
+                FisiksCollisions.SolveCollision(bodyA, bodyB, normal);
+                //FisiksCollisions.SolveCollisionWithRotation(contact);
             }
             
         }

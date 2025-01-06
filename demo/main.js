@@ -35,7 +35,7 @@ const ramp = new FisiksBody({
     color: 'white',
     shape: ShapeType.Box,
     isStatic: true,
-    rotation: Math.PI / 10
+    angle: Math.PI / 10
 })
 
 
