@@ -1,6 +1,6 @@
 import { Fisiks2DVector } from "./Fisiks2DVector";
-import { FisiksBody } from "./FisiksBody";
-import { FisiksBodyController } from "./FisiksBodyController";
+import { FisiksAxisAlignedBoundingBox } from "./FisiksAABB";
+import { FisiksBody, FisiksBodyBox, FisiksBodyCircle } from "./FisiksBody";
 import { FisiksCollisionManifold } from "./FisiksCollisionManifold";
 import { CollisionDetails, FisiksCollisions } from "./FisiksCollisions";
 import { FisiksObserver } from "./FisiksObservers";
@@ -18,11 +18,30 @@ export class FisiksDisplay {
     bodyMap: Map<id, FisiksBody> = new Map();
     gravity: Fisiks2DVector = Fisiks2DVector.Zero; 
 
-    showVertices: boolean = false;
     contactList: Set<FisiksCollisionManifold> = new Set(); 
+
+    private showVertices: boolean = false;
+    private showAABB: boolean = false;
+    private showContactPoints: boolean = false;
 
     private externalBehaviors: ((body: FisiksBody) => void)[] = [];
     private observers: FisiksObserver[] = [];
+
+    setShowVertices(value: boolean){
+        this.showVertices = value;
+    }
+
+    getShowVertices(){
+        return this.showVertices;
+    }
+
+    setShowAABB(value: boolean){
+        this.showAABB = value;
+    }
+
+    getShowAABB(){
+        return this.showAABB;
+    }
 
     addObserver(observer: FisiksObserver): void {
         this.observers.push(observer);
@@ -72,17 +91,13 @@ export class FisiksDisplay {
         return this.context;
     }
 
-    StartGameLoop(): void {
-        requestAnimationFrame(this.GameLoop.bind(this));
-    }
-
     AddBody(body: FisiksBody): void {
         this.bodyList.push(body);
-        this.bodyMap.set(body.id, body); 
+        this.bodyMap.set(body.getId(), body); 
     }
     
     RemoveBody(id: id): void {
-        this.bodyList = this.bodyList.filter(body => body.id !== id);
+        this.bodyList = this.bodyList.filter(body => body.getId() !== id);
         this.bodyMap.delete(id); 
     }
     
@@ -94,105 +109,110 @@ export class FisiksDisplay {
         this.gravity = amount;
     }
 
-    ForEachBody(method: (body: FisiksBody) => void = () => {}): void {
-        for (const body of this.bodyList) {
-            method(body);
-    
-            for (const behavior of this.externalBehaviors) {
-                behavior(body);
-            }
-        }
+    StartGameLoop(): void {
+        requestAnimationFrame(this.GameLoop.bind(this));
     }
 
-    private Interpolate(body: FisiksBody, alpha: number): void {
-        body.position = Fisiks2DVector.Add(
-            Fisiks2DVector.ScalarMultiplication(1 - alpha, body.previousPosition),
-            Fisiks2DVector.ScalarMultiplication(alpha, body.position)
-        );
-    
-        body.linearVelocity = Fisiks2DVector.Add(
-            Fisiks2DVector.ScalarMultiplication(1 - alpha, body.previousVelocity),
-            Fisiks2DVector.ScalarMultiplication(alpha, body.linearVelocity)
-        );
-    
-        body.angle = body.previousRotation + (alpha * (body.angle - body.previousRotation));
-    }
-    
+    private clearContext() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    } 
 
     private GameLoop(timeStamp: number): void {
         const secondsPassed = (timeStamp - this.oldTimeStamp) / 1000;
         this.oldTimeStamp = timeStamp;
-    
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
-        const alpha = secondsPassed / (1 / 60);
+
+        this.clearContext()
+
         const iterations = 30; 
-
-        this.ForEachBody((body) => {
-            body.previousPosition = body.position;
-            body.previousVelocity = body.linearVelocity;
-            body.previousRotation = body.angle;
-        });
-
         const subStepTime = secondsPassed / iterations;
-    
+        
+
         for (let step = 0; step < iterations; step++) {
-
-            for (let body of this.bodyList) {
-                if (body.controllable) {
-                    FisiksBodyController(body, subStepTime, 300);
-                }
-    
-                body.Step(subStepTime, this.gravity);
-                body.Draw(this.showVertices);
-                this.Interpolate(body, alpha);
-                this.notifyObservers(body);
-            }
-
-            this.contactList.clear();
-    
-            for (let i = 0; i < this.bodyList.length - 1; i++) {
-                const bodyA = this.bodyList[i];
-                const bodyAAABB = bodyA.GetAABB();
-    
-                for (let j = i + 1; j < this.bodyList.length; j++) {
-                    const bodyB = this.bodyList[j];
-                    const bodyBAABB = bodyB.GetAABB(); 
-
-                    if(bodyAAABB instanceof Error || bodyBAABB instanceof Error) continue
-
-                    if(!FisiksCollisions.BroadPhase(bodyAAABB, bodyBAABB)) continue
-
-                    const Details: CollisionDetails | undefined = FisiksCollisions.NarrowPashe(bodyA, bodyB);
-
-                    if(Details) {
-                        const { bodyA, bodyB, normal, depth, contactPoints } = Details;
-
-                        const contact: FisiksCollisionManifold  = new FisiksCollisionManifold(
-                            bodyA, 
-                            bodyB, 
-                            normal, 
-                            depth, 
-                            contactPoints
-                        );
-
-                        this.contactList.add(contact);
-                    }
-                }
-            }
-
-            for (const contact of this.contactList) {
-                const { bodyA, bodyB, normal, depth, contactPoints } = contact;
-                FisiksShape.DrawPoints(this.GetContext(), contactPoints);
-
-                FisiksCollisions.SeparateBodies(bodyA, bodyB, normal, depth);
-                FisiksCollisions.SolveCollision(bodyA, bodyB, normal);
-                //FisiksCollisions.SolveCollisionWithRotation(contact);
-            }
-            
+            this.UpdateBodies(subStepTime);
+            this.RenderBodies();
+            this.HandleCollisions();
         }
 
         requestAnimationFrame(this.GameLoop.bind(this));
     }
-    
+
+    private UpdateBodies(subStepTime: number): void {
+        for (let body of this.bodyList) {
+            for (const behavior of this.externalBehaviors) {
+                behavior(body);
+            }
+
+            body.Step(subStepTime, this.gravity);
+        }
+    }
+
+    private RenderBodies(){
+        for (let body of this.bodyList) {
+            body.Draw();
+        
+            if(this.getShowVertices() || this.getShowAABB()){
+                const context = body.getContext()
+
+                if(context instanceof CanvasRenderingContext2D){
+                    let points = [body.getCenter()]
+                    const AABB = body.getAABB();
+
+                    if(this.getShowAABB() && AABB instanceof FisiksAxisAlignedBoundingBox){
+                        points.push(AABB.min);
+                        points.push(AABB.max);
+                    }
+
+                    FisiksShape.DrawPoints(context, points)
+
+                    if(body instanceof FisiksBodyBox){
+                        FisiksShape.DrawPoints(context, body.getVertices())
+                    }
+                }
+            } 
+
+            this.notifyObservers(body);
+        }
+    }
+
+
+    private HandleCollisions(): void {
+        this.contactList.clear();
+
+        for (let i = 0; i < this.bodyList.length - 1; i++) {
+            const bodyA = this.bodyList[i];
+            const bodyAAABB = bodyA.getAABB();
+
+            for (let j = i + 1; j < this.bodyList.length; j++) {
+                const bodyB = this.bodyList[j];
+                const bodyBAABB = bodyB.getAABB(); 
+
+                if (bodyAAABB instanceof Error || bodyBAABB instanceof Error) continue;
+                if (!FisiksCollisions.BroadPhase(bodyAAABB, bodyBAABB)) continue;
+
+                const Details: CollisionDetails | undefined = FisiksCollisions.NarrowPashe(bodyA, bodyB);
+
+                if (Details) {
+                    const { bodyA, bodyB, normal, depth, contactPoints } = Details;
+
+                    const contact: FisiksCollisionManifold = new FisiksCollisionManifold(
+                        bodyA, bodyB, normal, depth, contactPoints
+                    );
+
+                    this.contactList.add(contact);
+                }
+            }
+        }
+
+        for (const contact of this.contactList) {
+            const { bodyA, bodyB, normal, depth, contactPoints } = contact;
+
+            if(this.showContactPoints){
+                FisiksShape.DrawPoints(this.GetContext(), contactPoints);
+            }
+
+            FisiksCollisions.SeparateBodies(bodyA, bodyB, normal, depth);
+            FisiksCollisions.SolveCollision(bodyA, bodyB, normal);
+            //FisiksCollisions.SolveCollisionWithRotation(contact)
+        }
+    }
 }

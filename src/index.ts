@@ -1,5 +1,5 @@
 export { Fisiks2DVector } from './Fisiks2DVector';
-export { FisiksBody } from './FisiksBody';
+export { FisiksBody, FisiksBodyBox, FisiksBodyCircle } from './FisiksBody';
 export { FisiksBodyController } from './FisiksBodyController';
 export { FisiksCollisions } from './FisiksCollisions';
 export { FisiksDisplay } from './FisiksDisplay';
