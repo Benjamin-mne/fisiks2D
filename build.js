@@ -2,7 +2,7 @@ import { build } from 'esbuild';
 
 build({
     entryPoints: ['./src/index.ts'],
-    outfile: './dist/bundle.js',
+    outfile: './demo/bundle.js',
     bundle: true,
     format: 'esm',
     target: ['es2020'],
