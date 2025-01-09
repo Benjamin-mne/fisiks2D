@@ -4,158 +4,390 @@ import { FisiksShape } from "./FisiksShape";
 import { FisiksTransform } from "./FisiksTransform";
 import { generateId, id } from "./utils/utils";
 
-export enum ShapeType { Box, Circle};  
-
 export class FisiksBody {
-    id: id = generateId(); 
-    context: CanvasRenderingContext2D | null = null;
-    position: Fisiks2DVector = Fisiks2DVector.Zero;
-    previousPosition: Fisiks2DVector = Fisiks2DVector.Zero;
-    color: string = 'blue';
+    private readonly id: id = generateId(); 
+    private readonly context: CanvasRenderingContext2D | null;
 
-    linearVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
-    previousVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
-    rotationCenter: Fisiks2DVector = Fisiks2DVector.Zero;
-    rotationalVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
-
-    angle: number = 0;
-    angularVelocity: number = 0;
-
-    inertia: number = 0;
-
-    force: Fisiks2DVector = Fisiks2DVector.Zero;
-    previousRotation: number = 0;
+    private previousPosition: Fisiks2DVector = Fisiks2DVector.Zero;
+    private position: Fisiks2DVector;
     
-    vertices: Fisiks2DVector[] = [];
-    transformedVertices: Fisiks2DVector[] = [];
+    private center: Fisiks2DVector = Fisiks2DVector.Zero;
+    private color: string = 'white';
 
-    public isColliding: boolean = false;
+    private linearVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
+    private previousVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
 
-    public area: number = 0;
-    public density: number = 0;
-    public mass: number = 0;
-    public restitution: number = 0.5;
+    private previousRotation: number = 0;
+    private rotationalVelocity: Fisiks2DVector = Fisiks2DVector.Zero;
 
-    public shape: ShapeType = ShapeType.Circle;
-    public radius: number = 50; 
-    public width: number = 100;  
-    public height: number = 100; 
+    private angle: number = 0;
+    private angularVelocity: number = 0;
 
-    public isStatic: boolean = false;
-    public controllable: boolean = false;
+    private inertia: number = 0;
+    private force: Fisiks2DVector = Fisiks2DVector.Zero;
+    private isColliding: boolean = false;
 
-    constructor(params: Partial<FisiksBody>) {
-        Object.assign(this, params);
+    private area: number = 0;
+    private density: number = 0;
+    private mass: number = 0;
+    private restitution: number = 0.5;
+
+    private isStatic: boolean = false;
+
+    constructor(context: CanvasRenderingContext2D | null, position: Fisiks2DVector){
+        this.context = context;
+        this.position = position;
     }
 
-    public CreateCircle(radius: number, showVertices: boolean){
-        if(!this.context){
+    setPreviousVelocity(velocity: Fisiks2DVector){
+        this.previousVelocity = velocity;
+    }
+
+    getPreviousVelocity(){
+        return this.previousVelocity
+    }
+
+    setPreviousPosition(position: Fisiks2DVector){
+        this.previousPosition = position;
+    }
+
+    getPreviousPosition(){
+        return this.previousPosition
+    }
+
+    setPreviousRotation(amount: number){
+        this.previousRotation = amount;
+    }
+
+    getPreviousRotation(){
+        return this.previousRotation;
+    }
+
+    getId(){
+        return this.id;
+    }
+
+    getContext(){
+        return this.context;
+    }
+    
+    setPosition(position: Fisiks2DVector){
+        this.position = position;
+    }
+
+    getPosition(){
+        return this.position
+    }
+
+    setCenter(center: Fisiks2DVector){
+        this.center = center;
+    }
+
+    getCenter(){
+        return this.center;
+    }
+
+    setColor(color: string){
+        this.color = color;
+    }
+
+    getColor(){
+        return this.color;
+    }
+
+    setArea(area: number){
+        this.area = area;
+    }
+
+    setMass(mass: number){
+        this.mass = mass;
+    }
+
+    getMass(){
+        return this.mass
+    }
+
+    setDensity(density: number){
+        this.density = density;
+    }
+
+    setRestitution(restitution: number){
+        this.restitution = restitution; 
+    }
+
+    getRestitution(){
+        return this.restitution;
+    }
+
+    setStatic(condition: boolean){
+        this.isStatic = condition;
+    }
+
+    getStatic(){
+        return this.isStatic;
+    }
+
+    setInertia(inertia: number){
+        this.inertia = inertia;
+    }
+
+    getInertia(){
+        return this.inertia;
+    }
+
+    setLinearVelocity(linearVelocity: Fisiks2DVector){
+        this.linearVelocity = linearVelocity;
+    }
+
+    getLinearVelocity(){
+        return this.linearVelocity
+    }
+
+    setRotationalVelocity(rotationalVelocity: number){
+        this.rotationalVelocity = this.rotationalVelocity;
+    }
+
+    getRotationalVelocity(){
+        return this.rotationalVelocity;
+    }
+
+    setAngularVelocity(angularVelocity: number){
+        this.angularVelocity = angularVelocity;
+    }
+
+    getAngularVelocity(){
+        return this.angularVelocity;
+    }
+
+    setAngle(angle: number){
+        this.angle = angle;
+    }
+
+    getAngle(){
+        return this.angle
+    }
+
+    setForce(amount: Fisiks2DVector){
+        this.force = amount;
+    }
+
+    getForce(){
+        return this.force
+    }
+
+    Rotate(amount: number){};
+    Draw(){};
+    Step(time: number, gravity: Fisiks2DVector){};
+    Move(amount: Fisiks2DVector){};
+    MoveTo(position: Fisiks2DVector){};
+    drawVertices(){};
+    drawAABB(){};
+
+    getAABB(): FisiksAxisAlignedBoundingBox | Error {
+        return new Error('Not init.')
+    }
+
+    ApplyForce(amount: Fisiks2DVector): void{
+        this.force = amount;
+    }
+
+}
+
+export class FisiksBodyCircle extends FisiksBody {
+    private radius: number; 
+
+    constructor(context: CanvasRenderingContext2D | null, position: Fisiks2DVector, radius: number){
+        super(context, position)
+        this.radius = radius;
+
+        const AREA_MASS_DENSITY: number = Math.PI * Math.pow(radius, 2);
+        const INERTIA = 0.5 * AREA_MASS_DENSITY * Math.pow(this.radius, 2);
+
+        this.setCenter(position);
+        this.setArea(AREA_MASS_DENSITY);
+        this.setDensity(AREA_MASS_DENSITY);
+        this.setMass(AREA_MASS_DENSITY);
+        this.setInertia(INERTIA);
+    }
+
+    override setPosition(position: Fisiks2DVector){
+        super.setPosition(position);
+        this.setCenter(position);
+    }
+    
+    getRadius(){
+        return this.radius;
+    }
+
+    override Draw(){
+        const context = this.getContext();
+
+        if (context instanceof CanvasRenderingContext2D) {
+            FisiksShape.DrawCircle(context, this.getPosition(), this.getColor(), this.radius);
+        } else {
             throw new Error("No context provided.");
-        }
-
-        this.rotationCenter = this.position;
-        this.area = Math.PI * radius * radius;
-        this.density = this.area;
-        this.mass = this.area;
-
-        FisiksShape.DrawCircle(this.context, this.position, this.color, this.radius);
-        
-        const AABB = this.GetAABB();
-
-        if(showVertices){
-            if (AABB instanceof FisiksAxisAlignedBoundingBox){
-                FisiksShape.DrawVertices(this.context, this.vertices.concat(this.rotationCenter), 'red', AABB)
-            } 
         }
     }
 
-    public CreateBox(width: number, height: number, showVertices: boolean){
-        if(!this.context){
+    override drawVertices(){
+        const context = super.getContext();
+
+        if (context instanceof CanvasRenderingContext2D) {
+            FisiksShape.DrawPoints(context, [this.getPosition()]);
+        } else {
             throw new Error("No context provided.");
         }
+    }
 
-        this.rotationCenter = new Fisiks2DVector(this.position.x + width/2, this.position.y + height/2);
+    override drawAABB(){
+        const context = this.getContext();
+        const AABB = this.getAABB();
+
+        if (context instanceof CanvasRenderingContext2D) {
+            FisiksShape.DrawPoints(context, [AABB.min, AABB.max]);
+        } else {
+            throw new Error("No context provided.");
+        }
+    }
+
+    getAABB(){
+        let max: Fisiks2DVector = new Fisiks2DVector(Number.MIN_VALUE, Number.MIN_VALUE); 
+        let min: Fisiks2DVector = new Fisiks2DVector(Number.MAX_VALUE, Number.MAX_VALUE);
+
+        min = new Fisiks2DVector(
+            this.getCenter().x - this.radius, 
+            this.getCenter().y - this.radius
+        );
+
+        max = new Fisiks2DVector(
+            this.getCenter().x + this.radius,
+            this.getCenter().y + this.radius
+        )
+
+        return new FisiksAxisAlignedBoundingBox(min, max);
+    }
+
+    override MoveTo(position: Fisiks2DVector){
+        this.setPosition(position);
+        this.setCenter(position); 
+    }
+
+    override Move(amount: Fisiks2DVector): void {
+        const newPosition = Fisiks2DVector.Add(this.getPosition(), amount);
+        this.setPosition(newPosition);
+
+        const newCenter = Fisiks2DVector.Add(this.getCenter(), amount)
+        this.setCenter(newCenter);
+    }
+
+    override Step(time: number, gravity: Fisiks2DVector): void {
+        if (this.getStatic()) return; 
+        if (this.getMass() === 0) return;
+    
+        const gravityEffect = Fisiks2DVector.ScalarMultiplication(time, gravity);
+        const newLinearVelocity = Fisiks2DVector.Add(this.getLinearVelocity(), gravityEffect);
+        this.setLinearVelocity(newLinearVelocity);
+    
+        const newPosition = Fisiks2DVector.Add(this.getPosition(), Fisiks2DVector.ScalarMultiplication(time, this.getLinearVelocity()));
+        this.setPosition(newPosition);
+    
+        const newCenter = Fisiks2DVector.Add(this.getCenter(), Fisiks2DVector.ScalarMultiplication(time, this.getLinearVelocity()));
+        this.setCenter(newCenter);
+    
+        const newAngle = this.getAngle() + this.getAngularVelocity() * time;
+        this.setAngle(newAngle);
+    
+        this.setForce(Fisiks2DVector.Zero);
+    }
+}
+
+export class FisiksBodyBox extends FisiksBody {
+    private width: number = 100;  
+    private height: number = 100; 
+    private vertices: Fisiks2DVector[] = [];
+    private transformedVertices: Fisiks2DVector[] = [];
+
+    constructor(context: CanvasRenderingContext2D | null, position: Fisiks2DVector, width: number, height: number){
+        super(context, position)
         this.width = width;
         this.height = height;
-        this.area = width * height;
-        this.density = this.area;
-        this.mass = this.area;
 
-        let inertia = this.CalculateRotationalInertia();
+        const CENTER = new Fisiks2DVector(position.x + width/2, position.y + height/2);
+        const AREA_MASS_DENSITY: number = width * height;
 
-        if (typeof inertia === 'number') {
-            this.inertia = inertia;
-        }
-        
+        this.setCenter(CENTER);
+        this.setArea(AREA_MASS_DENSITY);
+        this.setMass(AREA_MASS_DENSITY);
+        this.setDensity(AREA_MASS_DENSITY);
+
+        const INERTIA = (1 / 12) * this.getMass() * (Math.pow(this.height, 2) + Math.pow(this.width, 2))
+
+        this.setInertia(INERTIA);
+
         if(this.transformedVertices.length === 0){
             this.vertices = this.CreateBoxVertices(width, height);
         } else {
             this.vertices = this.transformedVertices;
         }
+    }
 
-        if(this.angle > 0) {
-            this.Rotate(this.angle);
-            this.angle = 0;
+    getHeight(){
+        return this.height;
+    }
+
+    getWidth(){
+        return this.width;
+    }
+
+    getVertices(){
+        return this.vertices;
+    }
+
+    override setPosition(position: Fisiks2DVector){
+        super.setPosition(position);
+
+        const newCenter = new Fisiks2DVector(position.x + this.width/2, position.y + this.height/2)
+        this.setCenter(newCenter);
+
+        const newVertices = this.CreateBoxVertices(this.width, this.height);
+        this.vertices = newVertices;
+    }
+
+    override Draw(){
+        const context = this.getContext();
+
+        if (context instanceof CanvasRenderingContext2D) {
+            FisiksShape.DrawPolygon(context, this.vertices, this.getColor());
+        } else {
+            throw new Error("No context provided.");
         }
+    }
 
-        FisiksShape.DrawPolygon(this.context, this.vertices, this.color);
+    drawVertices(){
+        const context = this.getContext();
 
-        const AABB = new FisiksAxisAlignedBoundingBox(Fisiks2DVector.Zero, Fisiks2DVector.Zero);
-
-        if(showVertices){
-            if (AABB instanceof FisiksAxisAlignedBoundingBox){
-                const vertices:Fisiks2DVector[] = this.vertices.concat(this.rotationCenter);
-                FisiksShape.DrawVertices(this.context, [vertices[4]], 'red', AABB)
-            } 
+        if (context instanceof CanvasRenderingContext2D) {
+            FisiksShape.DrawPoints(context, this.vertices.concat([this.getCenter()]));
+        } else {
+            throw new Error("No context provided.");
         }
     }
 
-    CreateBoxVertices(width: number, height: number): Fisiks2DVector[]{
-        let vertices: Fisiks2DVector[] = [];
-        
-        let left: number = this.position.x;
-        let right: number = this.position.x + width;
-        let bottom: number = this.position.y + height;
-        let top: number = this.position.y;
+    override drawAABB(){
+        const context = this.getContext();
+        const AABB = this.getAABB();
 
-        vertices[0] = new Fisiks2DVector(left, top);
-        vertices[1] = new Fisiks2DVector(right, top);
-        vertices[2] = new Fisiks2DVector(right, bottom);
-        vertices[3] = new Fisiks2DVector(left, bottom);
-
-        return vertices;
-    }
-
-    CreateBoxTriangules(): number[]{
-        let triangles: number[] = [];
-
-        triangles[0] = 0;
-        triangles[1] = 1;
-        triangles[2] = 2;
-        triangles[3] = 0;
-        triangles[4] = 2;
-        triangles[5] = 3;
-
-        return triangles;
-    }
-
-    GetTranformedVertices(): Fisiks2DVector[] {
-        for (let i = 0; i < this.vertices.length; i++) {
-            const vertex: Fisiks2DVector = this.vertices[i];
-            const transform: FisiksTransform = new FisiksTransform(this.rotationCenter, this.angle);
-            const rotatedVertex = Fisiks2DVector.Transform(vertex, transform);
-            
-            this.transformedVertices[i] = rotatedVertex;
+        if (context instanceof CanvasRenderingContext2D) {
+            FisiksShape.DrawPoints(context, [AABB.min, AABB.max]);
+        } else {
+            throw new Error("No context provided.");
         }
-    
-        return this.transformedVertices;
     }
 
-    GetAABB(): FisiksAxisAlignedBoundingBox | Error {
+    getAABB(): FisiksAxisAlignedBoundingBox {
         let max: Fisiks2DVector = new Fisiks2DVector(Number.MIN_VALUE, Number.MIN_VALUE); 
         let min: Fisiks2DVector = new Fisiks2DVector(Number.MAX_VALUE, Number.MAX_VALUE);
 
-        if(this.shape === ShapeType.Box){
             this.vertices.forEach(vertex => {
                 if(vertex.x > max.x){
                     max = new Fisiks2DVector(
@@ -186,98 +418,88 @@ export class FisiksBody {
             });
 
             return new FisiksAxisAlignedBoundingBox(min, max);
-        }
-        else if (this.shape === ShapeType.Circle){
-            min = new Fisiks2DVector(
-                this.rotationCenter.x - this.radius, 
-                this.rotationCenter.y - this.radius
-            );
+    }
 
-            max = new Fisiks2DVector(
-                this.rotationCenter.x + this.radius,
-                this.rotationCenter.y + this.radius
-            )
-
-            return new FisiksAxisAlignedBoundingBox(min, max);
-        }
+    CreateBoxVertices(width: number, height: number): Fisiks2DVector[]{
+        let vertices: Fisiks2DVector[] = [];
         
-        throw new Error('AxisAlignedBoundingBox Error!')
+        let left: number = this.getPosition().x;
+        let right: number = this.getPosition().x + width;
+        let bottom: number = this.getPosition().y + height;
+        let top: number = this.getPosition().y;
+
+        vertices[0] = new Fisiks2DVector(left, top);
+        vertices[1] = new Fisiks2DVector(right, top);
+        vertices[2] = new Fisiks2DVector(right, bottom);
+        vertices[3] = new Fisiks2DVector(left, bottom);
+
+        return vertices;
+    }
+
+    GetTranformedVertices(): Fisiks2DVector[] {
+        for (let i = 0; i < this.vertices.length; i++) {
+            const vertex: Fisiks2DVector = this.vertices[i];
+            const transform: FisiksTransform = new FisiksTransform(this.getCenter(), this.getAngle());
+            const rotatedVertex = Fisiks2DVector.Transform(vertex, transform);
+            
+            this.transformedVertices[i] = rotatedVertex;
+        }
+    
+        return this.transformedVertices;
+    }
+
+    override MoveTo(position: Fisiks2DVector){
+        this.setPosition(position);
+        
+        const newCenter = new Fisiks2DVector(position.x + this.width/2, position.y + this.height/2);
+        this.setCenter(newCenter);
+
+        this.vertices = this.CreateBoxVertices(this.width, this.height)
+    }
+
+    override Move(amount: Fisiks2DVector) {
+        const newPosition = Fisiks2DVector.Add(this.getPosition(), amount);
+        this.setPosition(newPosition);
+
+        const newCenter = Fisiks2DVector.Add(this.getCenter(), amount)
+        this.setCenter(newCenter);
+
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.vertices[i] = Fisiks2DVector.Add(this.vertices[i], amount);                
+        }
+    }
+
+    override Rotate(amount: number){
+        this.setAngle(amount);
+        
+        const newVertices = this.GetTranformedVertices();
+        this.vertices = newVertices;
+        
+        this.setAngle(0);
+    }
+
+    override Step(time: number, gravity: Fisiks2DVector): void {
+        if (this.getStatic()) return; // No afecta cuerpos estáticos
+        if (this.getMass() === 0) return; // No afecta cuerpos sin masa
+    
+        const gravityEffect = Fisiks2DVector.ScalarMultiplication(time, gravity);
+        const newLinearVelocity = Fisiks2DVector.Add(this.getLinearVelocity(), gravityEffect);
+        this.setLinearVelocity(newLinearVelocity);
+    
+        const newPosition = Fisiks2DVector.Add(this.getPosition(), Fisiks2DVector.ScalarMultiplication(time, this.getLinearVelocity()));
+        this.setPosition(newPosition);
+    
+        const newCenter = Fisiks2DVector.Add(this.getCenter(), Fisiks2DVector.ScalarMultiplication(time, this.getLinearVelocity()));
+        this.setCenter(newCenter);
+    
+        const newAngle = this.getAngle() + this.getAngularVelocity() * time;
+        this.setAngle(newAngle);
+    
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.vertices[i] = Fisiks2DVector.Add(this.vertices[i], Fisiks2DVector.ScalarMultiplication(time, this.getLinearVelocity()));
+        }
+    
+        this.setForce(Fisiks2DVector.Zero);
     }
     
-    Rotate(amount: number){
-        this.angle = amount;
-        this.GetTranformedVertices();
-    }
-
-    CalculateRotationalInertia(): number {
-        if (this.shape === ShapeType.Circle) {
-            return (1 / 2) * this.mass * (this.radius * this.radius);
-        } else if (this.shape === ShapeType.Box) {
-            return (1 / 12) * this.mass * (this.height * this.height + this.width * this.width);
-        } else {
-            throw new Error('No Valid Shape Type.');
-        }
-    }
-
-    Move(amount: Fisiks2DVector): void {
-        this.position = Fisiks2DVector.Add(this.position, amount);
-        this.rotationCenter = Fisiks2DVector.Add(this.rotationCenter, amount);
-
-        if(this.shape === ShapeType.Box){
-            for (let i = 0; i < this.vertices.length; i++) {
-                this.vertices[i] = Fisiks2DVector.Add(this.vertices[i], amount);                
-            }
-        }
-    }
-
-    MoveTo(position: Fisiks2DVector){
-        this.position = position;
-        this.rotationCenter = new Fisiks2DVector(this.position.x + this.width/2, this.position.y + this.height/2);
-
-        if(this.shape === ShapeType.Box){
-            this.vertices = this.CreateBoxVertices(this.width, this.height)
-        }
-    }
-
-    ApplyForce(amount: Fisiks2DVector): void {
-        this.force = amount;
-    }
-
-    Step(time: number, gravity: Fisiks2DVector): void{
-        if(this.isStatic) return
-        if(this.mass === 0) return
-        
-        //const acceleration: Fisiks2DVector = Fisiks2DVector.ScalarMultiplication(1 / this.mass, this.force);
-        //this.linearVelocity = Fisiks2DVector.Add(this.linearVelocity, Fisiks2DVector.ScalarMultiplication(time * 1000, acceleration));
-
-        this.linearVelocity = Fisiks2DVector.Add(
-            this.linearVelocity,
-            Fisiks2DVector.ScalarMultiplication(time, gravity)
-        );
-
-        this.position = Fisiks2DVector.Add(this.position, Fisiks2DVector.ScalarMultiplication(time, this.linearVelocity));
-        this.rotationCenter = Fisiks2DVector.Add(this.rotationCenter, Fisiks2DVector.ScalarMultiplication(time, this.rotationalVelocity));
-    
-        this.angle += this.angularVelocity * time;
-
-        if(this.shape === ShapeType.Box){
-            for (let i = 0; i < this.vertices.length; i++) {
-                this.vertices[i] = Fisiks2DVector.Add(this.vertices[i], Fisiks2DVector.ScalarMultiplication(time, this.rotationalVelocity));                
-            }
-        }
-
-        this.force = Fisiks2DVector.Zero;
-    }
-
-    Draw(showVertices: boolean){
-        if(this.shape === ShapeType.Circle){
-            this.CreateCircle(this.radius, showVertices);
-        }
-        else if(this.shape === ShapeType.Box){
-            this.CreateBox(this.width, this.height, showVertices);
-        }
-        else {
-            throw new Error("Property does not exist on ShapeType");
-        }
-    }
 }
